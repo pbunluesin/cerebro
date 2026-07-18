@@ -64,7 +64,7 @@ Restart Claude Code after a marketplace install or update, then invoke `/cerebro
 | `review-plan` | Adversarial review before implementation |
 | `review-code` | Evidence-backed review of a diff or explicit scope |
 | `fix-findings` | Reproduce and fix one confirmed finding at a time |
-| `handoff` | Preserve verified continuation context across sessions |
+| `handoff` | Preserve verified continuation context and deliver source-owned cross-project dispatches |
 
 ## Project profiles
 

@@ -2,6 +2,13 @@
 
 All notable changes to Cerebro are documented here.
 
+## Unreleased
+
+### Changed
+
+- Made handoff explicit-only, restored deterministic Git-context collection, and expanded `PROJECT_STATE.md` with bounded operational continuation context.
+- Added source-owned cross-project dispatches with authorized target inbox pointers and detailed SQL Server stored procedure contract verification.
+
 ## 0.1.0 - 2026-07-18
 
 ### Added

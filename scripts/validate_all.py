@@ -45,6 +45,12 @@ SKILL_CONTRACT_MARKERS = {
         "Ask which candidate",
         "No candidate is a valid outcome",
     ),
+    "handoff": (
+        "collect_context.py",
+        ".cerebro/inbox/",
+        "SQL Server stored procedure",
+        "Do not retry",
+    ),
 }
 
 
@@ -146,6 +152,8 @@ def validate_skill(skill_dir: Path) -> list[str]:
             errors.append(f"{metadata.relative_to(ROOT)}: default_prompt must mention ${expected}")
         if "TODO" in yaml_text:
             errors.append(f"{metadata.relative_to(ROOT)}: contains TODO")
+        if expected == "handoff" and "allow_implicit_invocation: false" not in yaml_text:
+            errors.append(f"{metadata.relative_to(ROOT)}: handoff must require explicit invocation")
     return errors
 
 
@@ -218,6 +226,23 @@ def main() -> int:
     for path in sorted(ROOT.rglob("*.py")):
         if ".git" not in path.parts:
             errors.extend(validate_python(path))
+
+    handoff_contract = (SKILLS / "handoff" / "references" / "handoff-contract.md").read_text(encoding="utf-8")
+    for marker in (
+        ".cerebro/inbox/",
+        "explicit approval for the exact target root",
+        "SQL Server stored procedure",
+        "Runtime/environment state",
+    ):
+        if marker not in handoff_contract:
+            errors.append(f"handoff-contract.md: missing handoff marker {marker}")
+
+    state_template = (SKILLS / "create-project" / "assets" / "project" / "PROJECT_STATE.md.tmpl").read_text(
+        encoding="utf-8"
+    )
+    for marker in ("Exact stopping point", "Verified evidence", "Do not retry", "Next invocation"):
+        if marker not in state_template:
+            errors.append(f"PROJECT_STATE.md.tmpl: missing handoff marker {marker}")
 
     sys.path.insert(0, str(SKILLS / "create-project" / "scripts"))
     try:

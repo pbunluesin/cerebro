@@ -49,6 +49,7 @@ Serve as the current continuation point. Keep:
 - current risks and blockers
 - recent decision links
 - exact validation commands
+- a compact operational handoff block when pausing, following the installed `handoff` skill's contract
 
 Remove completed narration that Git history or durable docs already preserve. Never turn this into a process manual.
 

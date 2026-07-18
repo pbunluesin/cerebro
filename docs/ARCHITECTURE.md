@@ -26,7 +26,7 @@
 | `skills/review-plan/` | Independent pre-code plan challenge |
 | `skills/review-code/` | Evidence-backed diff review |
 | `skills/fix-findings/` | Reproduce-first correction workflow |
-| `skills/handoff/` | Verified session and cross-repository handoff |
+| `skills/handoff/` | Explicit verified continuation, deterministic Git snapshot, source-owned dispatch, authorized target inbox pointer, and contract-drift verification |
 | `agents/` | Claude-only specialist adapters |
 | `scripts/` | Plugin-maintainer validation |
 
@@ -63,7 +63,7 @@ The user may stop or revise at any checkpoint. A prototype request can bypass th
 | Human quick start | `README.md` |
 | Durable cross-agent rules | `AGENTS.md` |
 | Claude-specific routing | `CLAUDE.md` when Claude is selected |
-| Current phase, goal, risks, next action | `PROJECT_STATE.md` |
+| Current phase, goal, risks, verified stopping point, operational continuation context, next action | `PROJECT_STATE.md` |
 | Problem, goals, users, success measures | `docs/PRODUCT.md` |
 | Requirements and acceptance criteria | `docs/REQUIREMENTS.md` |
 | Canonical domain terms | `docs/CONTEXT.md` for project-wide language; `docs/contexts/*.md` for context-specific language |
