@@ -1,0 +1,10 @@
+flowchart LR
+    H[Human Owner] --> C[Claude Code Implementer]
+    C --> T[Tests / Lint / Dry Run]
+    T --> X[Codex Review]
+    X --> F[Review Findings]
+    F --> C
+    C --> R[Re-review if needed]
+    R --> H
+    H --> M[Commit / PR Approval]
+    C --> S[Update PROJECT_STATE.md and docs/]

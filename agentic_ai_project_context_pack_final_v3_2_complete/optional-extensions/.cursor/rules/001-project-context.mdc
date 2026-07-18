@@ -1,0 +1,12 @@
+---
+description: Project context loading rule
+alwaysApply: true
+---
+
+Before making code changes, read:
+
+- `PROJECT_STATE.md`
+- `PROCESS.md`
+- Relevant files in `docs/`
+
+Do not assume project architecture from code alone.
