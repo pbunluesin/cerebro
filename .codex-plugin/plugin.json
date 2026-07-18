@@ -1,0 +1,40 @@
+{
+  "name": "cerebro",
+  "version": "0.1.0",
+  "description": "Grill requirements, model domain language, design architecture, and scaffold an evidence-governed project for Codex and Claude.",
+  "author": {
+    "name": "pbunluesin",
+    "url": "https://github.com/pbunluesin"
+  },
+  "homepage": "https://github.com/pbunluesin/cerebro",
+  "repository": "https://github.com/pbunluesin/cerebro",
+  "license": "MIT",
+  "keywords": [
+    "requirements",
+    "project-bootstrap",
+    "domain-modeling",
+    "architecture",
+    "guardrails",
+    "code-review",
+    "claude",
+    "codex"
+  ],
+  "skills": "./skills/",
+  "interface": {
+    "displayName": "Cerebro",
+    "shortDescription": "Grill, scaffold, and govern AI-ready projects.",
+    "longDescription": "Cerebro turns a rough software idea into validated requirements, sharpens domain language, designs proportionate module boundaries and interfaces, scaffolds the project, and installs durable guardrails and independent review workflows for Codex and Claude.",
+    "developerName": "pbunluesin",
+    "category": "Developer Tools",
+    "capabilities": [
+      "Interactive",
+      "Write"
+    ],
+    "websiteURL": "https://github.com/pbunluesin/cerebro",
+    "defaultPrompt": [
+      "Grill this project idea until it is ready to build.",
+      "Audit this repository for AI development readiness.",
+      "Review this implementation plan before coding."
+    ]
+  }
+}

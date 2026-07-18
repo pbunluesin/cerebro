@@ -1,0 +1,21 @@
+{
+  "name": "cerebro",
+  "version": "0.1.0",
+  "description": "Grill software requirements, sharpen domain language and architecture, scaffold an AI-ready project, and enforce evidence-based delivery guardrails.",
+  "author": {
+    "name": "pbunluesin",
+    "url": "https://github.com/pbunluesin"
+  },
+  "homepage": "https://github.com/pbunluesin/cerebro",
+  "repository": "https://github.com/pbunluesin/cerebro",
+  "license": "MIT",
+  "keywords": [
+    "requirements",
+    "project-bootstrap",
+    "domain-modeling",
+    "architecture",
+    "guardrails",
+    "code-review",
+    "codex"
+  ]
+}

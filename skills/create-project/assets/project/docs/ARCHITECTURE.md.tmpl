@@ -1,0 +1,57 @@
+# Architecture
+
+## System boundary
+
+TBD: define what the system owns and what remains external.
+
+## Context diagram
+
+```mermaid
+flowchart LR
+    User[User or caller] --> System[{{PROJECT_NAME}}]
+    System --> Dependency[External dependency, if any]
+```
+
+Replace or remove placeholder nodes after requirements are confirmed.
+
+## Modules, interfaces, and responsibilities
+
+| Module | Interface callers must understand | Behavior hidden | Owns / must not own |
+|---|---|---|---|
+| TBD | TBD operations, invariants, errors, ordering, and performance obligations | TBD | TBD / TBD |
+
+Prefer modules that concentrate related behavior behind a small interface. Name pass-through modules, leaked caller policy, or speculative seams as risks rather than disguising them with extra layers.
+
+## Primary flows
+
+1. TBD
+
+## Data and state
+
+TBD: identify state boundaries and sources of truth, or state that the project is stateless.
+
+## Interfaces and dependencies
+
+| Dependency | Contract | Seam/adapter rationale | Failure mode | Isolation/recovery |
+|---|---|---|---|---|
+| TBD | TBD | TBD real variation, trust, volatility, or test-isolation need | TBD | TBD |
+
+## Trust boundaries
+
+- TBD
+
+## Error, retry, and idempotency strategy
+
+- TBD
+
+## Observability
+
+- TBD
+
+## Architecture risks
+
+- TBD
+
+## Decisions
+
+Link accepted decisions from [decisions/](decisions/). Do not treat `0000-template.md` as an accepted decision.

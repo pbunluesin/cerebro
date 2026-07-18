@@ -1,0 +1,4 @@
+interface:
+  display_name: "Review Code"
+  short_description: "Find evidence-backed regressions in changes"
+  default_prompt: "Use $review-code to inspect the current diff and report only evidence-backed findings."

@@ -1,0 +1,68 @@
+# Review Contract
+
+This file is the project-specific source of truth for evidence-based code review.
+
+## Review scope
+
+- Default: current task diff and directly affected contracts.
+- Expanded scope: TBD
+- Out of scope: TBD
+
+## Reviewer separation and model policy
+
+- Primary implementer/fixer: Claude Code.
+- Independent reviewer: Codex CLI in read-only mode.
+- Model policy: resolve the latest currently approved Codex model from authoritative current evidence immediately before each review; pass the exact model ID explicitly and record it with the review artifact.
+- No silent fallback: if model resolution or Codex execution cannot be verified, mark the review `BLOCKED` or `PARTIALLY VERIFIED` rather than substituting Claude self-review.
+- Re-review: required after every R0/R1 fix and changes affecting security, data, auth, money, migrations, or external contracts.
+
+## Frozen decisions and do-not-flag items
+
+- TBD or `None`.
+
+## Invariants
+
+| ID | Invariant | Evidence/source | Severity if broken |
+|---|---|---|---|
+| INV-001 | TBD | TBD | High |
+
+## Priority risk areas
+
+- correctness and requirement preservation
+- authorization and tenant boundaries
+- data integrity and migration safety
+- API/event compatibility and idempotency
+- failure recovery and operational visibility
+- project-specific risks: TBD
+
+## Verification commands
+
+```bash
+# fast relevant checks: TBD
+# full required checks: TBD
+```
+
+Replace every command with a verified project command before using automated review.
+
+## Evidence standard
+
+A finding must include:
+
+1. affected file and precise location
+2. concrete failure path or violated invariant
+3. user, data, security, compatibility, or operational impact
+4. minimal correction direction
+5. a reproduction or verification approach
+
+Do not file style preferences, speculative concerns, or pre-existing unrelated problems as regressions.
+
+## Severity
+
+- `CRITICAL`: exploitable security issue, irreversible data loss, or system-wide outage risk.
+- `HIGH`: likely production failure, authorization breach, material data corruption, or broken contract.
+- `MEDIUM`: correctness or robustness defect under realistic conditions.
+- `LOW`: contained defect with minor impact; exclude pure preference.
+
+## Finding lifecycle
+
+Store one confirmed finding in `docs/quality/findings/FINDING-NNN-<slug>.md` with status `OPEN`, `FIXED`, `WONT_FIX`, or `DUPLICATE`. A finding is fixed only after its failure is reproduced or otherwise evidenced and the relevant verification passes.

@@ -1,0 +1,4 @@
+interface:
+  display_name: "Review Plan"
+  short_description: "Challenge plans before implementation"
+  default_prompt: "Use $review-plan to adversarially review the current implementation plan before coding."

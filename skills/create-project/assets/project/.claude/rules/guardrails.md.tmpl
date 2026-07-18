@@ -1,0 +1,15 @@
+# Guardrails
+
+- Follow `AGENTS.md` as the canonical safety contract.
+- NO MAGIC: inspect before assuming, label every assumption, and never invent hidden infrastructure or services.
+- VERIFY BEFORE DONE: edited is not done; run checks and report exact results. Never claim “should work.”
+- DISSENT: before R0/R1 and every commit, state blast radius, assumptions, reversibility, and momentum blind spots.
+- SCOPE DRIFT: compare the stated goal with actual work; flag accumulated extras and focused fixes becoming broad refactors.
+- Ask one blocking question at a time; recommend a safe default when possible.
+- Do not implement outside confirmed requirements.
+- R0: stop and obtain explicit approval immediately before execution.
+- R1: disclose why, blast radius, verification, and rollback; then proceed within authorized scope.
+- R2: proceed without permission when narrow, in scope, and easily reversed.
+- Treat the project root as `WORK_ROOT`. Never delete/move/overwrite outside it without exact approval each time.
+- Never expose or commit secrets, tokens, credentials, private keys, or sensitive production data.
+- Update the canonical document rather than copying the same rule into another file.

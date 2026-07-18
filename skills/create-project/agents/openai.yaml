@@ -1,0 +1,4 @@
+interface:
+  display_name: "Create Project"
+  short_description: "Grill requirements and scaffold ready projects"
+  default_prompt: "Use $create-project to grill this idea until implementation-ready, then generate the project structure."

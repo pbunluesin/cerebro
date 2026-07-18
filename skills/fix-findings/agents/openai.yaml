@@ -1,0 +1,4 @@
+interface:
+  display_name: "Fix Findings"
+  short_description: "Reproduce and fix confirmed findings"
+  default_prompt: "Use $fix-findings to fix the highest-priority confirmed finding and verify the result."

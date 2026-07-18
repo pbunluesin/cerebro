@@ -1,0 +1,15 @@
+# Claude Code guidance
+
+Follow [AGENTS.md](AGENTS.md) as the shared source of durable project rules.
+
+Before work:
+
+1. Read [PROJECT_STATE.md](PROJECT_STATE.md).
+2. Read the requirement and architecture documents routed by `AGENTS.md`.
+3. Load only the `.claude/rules/` files relevant to the task.
+
+Use the installed Cerebro workflows for requirement grilling, plan review, code review, finding fixes, and handoff. Do not duplicate those workflows into this file.
+
+Claude Code is the primary planner, implementer, and finding fixer. For non-trivial changes, use the project review contract at `docs/quality/REVIEW_CONTRACT.md` when present and coordinate an independent Codex CLI review with the latest currently verified approved model. Record the exact model ID and review scope. Do not replace that independent pass with Claude self-review.
+
+After Codex reports findings, reproduce each finding before fixing it. Ask Codex to re-review R0/R1, security, data, auth, payment, migration, and external-contract fixes.

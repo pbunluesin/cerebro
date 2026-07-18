@@ -1,0 +1,29 @@
+# Critical Release Checklist
+
+## Requirement and review evidence
+
+- [ ] Confirmed requirements map to acceptance evidence.
+- [ ] Review contract is populated with real invariants and commands.
+- [ ] Critical/high findings are resolved or explicitly accepted by an authorized owner.
+
+## Security and data
+
+- [ ] Threat model reviewed for this release.
+- [ ] Authorization and tenant-boundary tests pass.
+- [ ] Secrets and sensitive logging checks pass.
+- [ ] Migration/backfill dry run and reconciliation pass when applicable.
+- [ ] Backup and recovery evidence is current.
+
+## Operations
+
+- [ ] Deployment owner and incident owner are available.
+- [ ] Dashboards, alerts, and runbooks cover material failure modes.
+- [ ] Rollback trigger and procedure are tested or rehearsed.
+- [ ] R0 actions have explicit human approval.
+
+## Release
+
+- [ ] Build artifact and configuration are traceable.
+- [ ] Post-deployment verification steps are assigned.
+- [ ] Residual risks and skipped checks are recorded.
+- [ ] `PROJECT_STATE.md` names the release state and next action.
