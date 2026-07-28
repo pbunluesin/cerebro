@@ -2,7 +2,12 @@
 
 Cerebro is a dual Codex and Claude Code plugin for turning a rough software idea into an implementation-ready project.
 
-It does not jump directly from an idea to code. It first inspects available context, grills one unresolved decision at a time, validates the final requirement set, selects a right-sized project profile, and then creates the project documentation, agent guidance, guardrails, and review workflow.
+It does not jump directly from an idea to code. It first inspects available
+context, grills one unresolved decision at a time, validates the final
+requirement set, resolves current official scaffold/docs/example references
+and exact version-aware Good/Bad rules, selects a right-sized project profile,
+and then creates the project documentation, agent guidance, guardrails, and
+review workflow.
 
 ## Primary workflow
 
@@ -21,7 +26,7 @@ Use $create-project to grill this idea until implementation-ready, then scaffold
 The workflow progresses through:
 
 ```text
-DISCOVERY -> REQUIREMENTS_READY -> ARCHITECTURE_READY -> IMPLEMENTATION_READY
+DISCOVERY -> REQUIREMENTS_READY -> REFERENCE_APPROVED -> ARCHITECTURE_READY -> IMPLEMENTATION_READY
 ```
 
 Project files are generated only after blocking questions are resolved or explicitly recorded as accepted assumptions.
@@ -75,6 +80,19 @@ Restart Claude Code after a marketplace install or update, then invoke `/cerebro
 All profiles use `AGENTS.md` for durable shared rules and `PROJECT_STATE.md` for current status. Cerebro intentionally does not generate `PROCESS.md`; repeatable process belongs in skills.
 
 During grilling, Cerebro actively resolves domain terminology and rejected synonyms. Maintained or multi-module projects also pass a proportional module/interface/seam check before `ARCHITECTURE_READY`; narrow projects are not forced into speculative abstraction.
+
+Every generated project records exact stack versions, path scopes, approved
+official references, Stack Pack hashes, and selected rule IDs in
+`.cerebro/stack-profile.json`. Packs are maintained centrally: monthly
+freshness review, quarterly semantic review, immediate event review, and a
+reviewed `observed_ref` to `approved_ref` promotion. Selection fails closed
+when a catalog is stale or a version/path cannot be resolved.
+
+Projects that select SQL Server stored procedures also receive the versioned
+`DBHS-01` team house standard and SQL-only starter templates. Cerebro treats
+that standard as user-authorized project policy—not as a universal Microsoft
+best-practice claim—and keeps its version/content hash in the generated stack
+profile.
 
 ## Default safety and delivery policy
 

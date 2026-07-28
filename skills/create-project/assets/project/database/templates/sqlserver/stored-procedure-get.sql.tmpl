@@ -1,0 +1,30 @@
+/*
+------------------------|-------------------------------|---------------------------------------------
+-- Author               | DateTime                      | Comment
+------------------------|-------------------------------|---------------------------------------------
+-- <Developer Name>     | <YYYY-MM-DD>                  | Create SP V<version>: <Purpose>
+------------------------|-------------------------------|---------------------------------------------
+
+-- EXEC_TEST:
+-- EXEC [<schema_name>].[get_<module>_v<version>] @<filter_parameter> = NULL;
+
+-- PURPOSE:
+-- <Describe the business result and caller-visible result shape>
+*/
+
+-- Team template assumes a GO-aware SQL deployment tool; confirm the selected mode.
+CREATE PROC [<schema_name>].[get_<module>_v<version>]
+(
+    @<filter_parameter> <SQL_DATA_TYPE> = NULL
+)
+AS
+BEGIN
+    SET NOCOUNT ON;
+    SET TRANSACTION ISOLATION LEVEL READ UNCOMMITTED;
+
+    SELECT  t.<column_1>
+            , t.<column_2>
+    FROM    [<schema_name>].[<table_name>] AS t
+    WHERE   (@<filter_parameter> IS NULL OR t.<filter_column> = @<filter_parameter>);
+END;
+GO

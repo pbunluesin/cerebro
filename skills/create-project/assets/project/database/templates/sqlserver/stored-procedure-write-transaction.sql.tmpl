@@ -1,0 +1,42 @@
+/*
+------------------------|-------------------------------|---------------------------------------------
+-- Author               | DateTime                      | Comment
+------------------------|-------------------------------|---------------------------------------------
+-- <Developer Name>     | <YYYY-MM-DD>                  | Create SP V<version>: <Purpose>
+------------------------|-------------------------------|---------------------------------------------
+
+-- EXEC_TEST:
+-- EXEC [<schema_name>].[<action>_<module>_v<version>] <safe named parameters>;
+
+-- PURPOSE:
+-- <Describe the multi-statement business mutation and caller-visible outcome>
+*/
+
+-- Base house pattern: the procedure owns its transaction.
+-- Use a reviewed @@TRANCOUNT/savepoint adaptation when caller-owned nesting is supported.
+-- Team template assumes a GO-aware SQL deployment tool; confirm the selected mode.
+CREATE PROC [<schema_name>].[<action>_<module>_v<version>]
+(
+    @<parameter_1> <SQL_DATA_TYPE>
+)
+AS
+BEGIN
+    SET NOCOUNT ON;
+    SET XACT_ABORT ON;
+
+    BEGIN TRY
+        BEGIN TRAN;
+
+        <CONFIRMED_STATEMENT_1>;
+        <CONFIRMED_STATEMENT_2>;
+
+        COMMIT TRAN;
+    END TRY
+    BEGIN CATCH
+        IF XACT_STATE() <> 0
+            ROLLBACK TRAN;
+
+        THROW;
+    END CATCH;
+END;
+GO

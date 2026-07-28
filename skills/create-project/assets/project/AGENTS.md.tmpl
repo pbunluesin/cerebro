@@ -3,9 +3,10 @@
 ## Read first
 
 1. Read `PROJECT_STATE.md`.
-2. Read `docs/REQUIREMENTS.md` and `docs/ARCHITECTURE.md`.
-3. Read only the conditional document relevant to the task.
-4. Inspect code, configuration, and tests before asking for discoverable facts.
+2. Read `.cerebro/stack-profile.json`; apply only the selected rule IDs to their declared versions and paths.
+3. Read `docs/REQUIREMENTS.md` and `docs/ARCHITECTURE.md`.
+4. Read only the conditional document relevant to the task.
+5. Inspect code, configuration, lockfiles, and tests before asking for discoverable facts.
 
 ## Project commands
 
@@ -66,8 +67,13 @@ Keep review and fixing in separate contexts. A Claude agent may coordinate the C
 | Tests and verification | `docs/TESTING.md` |
 | Deployment, monitoring, recovery | `docs/OPERATIONS.md` when present |
 | Hard-to-reverse decision | `docs/decisions/` |
+| Stack versions, approved upstream references, selected rule IDs | `.cerebro/stack-profile.json` |
 | Current objective and next action | `PROJECT_STATE.md` |
 
 ## Review standard
 
 Prioritize correctness, security, data integrity, contract preservation, recovery, and maintainability. Report findings with file/line evidence and a concrete failure mode. Do not report preferences as defects.
+
+Version-bound findings are invalid unless the installed/deployed version and
+path match `.cerebro/stack-profile.json`. If the profile is missing, stale,
+ambiguous, or still `candidate`, stop and resolve it instead of guessing.

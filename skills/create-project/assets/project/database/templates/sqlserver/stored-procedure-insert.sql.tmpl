@@ -1,0 +1,64 @@
+/*
+------------------------|-------------------------------|---------------------------------------------
+-- Author               | DateTime                      | Comment
+------------------------|-------------------------------|---------------------------------------------
+-- <Developer Name>     | <YYYY-MM-DD>                  | Create SP V<version>: <Purpose>
+------------------------|-------------------------------|---------------------------------------------
+
+-- EXEC_TEST:
+-- EXEC [<schema_name>].[insert_<module>_v<version>]
+--     @<parameter_1> = <safe_example_value_1>
+--     , @<parameter_2> = <safe_example_value_2>;
+
+-- PURPOSE:
+-- <Describe the business insert and caller-visible outcome>
+*/
+
+-- Team template assumes a GO-aware SQL deployment tool; confirm the selected mode.
+-- A PRIMARY KEY/UNIQUE constraint or unique index must enforce any no-duplicate invariant.
+CREATE PROC [<schema_name>].[insert_<module>_v<version>]
+(
+    @<parameter_1> <SQL_DATA_TYPE>
+    , @<parameter_2> <SQL_DATA_TYPE>
+)
+AS
+BEGIN
+    SET NOCOUNT ON;
+    SET XACT_ABORT ON;
+
+    BEGIN TRY
+        BEGIN TRAN;
+
+        IF NOT EXISTS
+        (
+            SELECT  1
+            FROM    [<schema_name>].[<table_name>]
+            WHERE   <unique_column> = @<parameter_1>
+        )
+        BEGIN
+            INSERT INTO [<schema_name>].[<table_name>]
+            (
+                <column_1>
+                , <column_2>
+            )
+            VALUES
+            (
+                @<parameter_1>
+                , @<parameter_2>
+            );
+        END
+        ELSE
+        BEGIN
+            RAISERROR(N'<Business validation: duplicate record>', 16, 1);
+        END;
+
+        COMMIT TRAN;
+    END TRY
+    BEGIN CATCH
+        IF XACT_STATE() <> 0
+            ROLLBACK TRAN;
+
+        THROW;
+    END CATCH;
+END;
+GO

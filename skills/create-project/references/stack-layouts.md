@@ -97,6 +97,26 @@ tests/
 
 Create only stages that exist. Document replay, deduplication, schema evolution, backfill, recovery, and ownership before implementation.
 
+### SQL Server database project
+
+When SQL Server is a confirmed deployable and the approved official
+initializer owns the database project:
+
+```text
+database/
+├── <database-project>/           # initializer-owned .sqlproj and object sources
+├── templates/
+│   └── sqlserver/                # DBHS-01 procedure starter templates
+└── tests/                        # only confirmed object/contract/integration tests
+```
+
+Use one declarative source file per real database object and let the selected
+SQL project conventions determine schema/object subfolders. Move a populated
+procedure from `templates/sqlserver/` into the initializer-owned source tree;
+do not treat the starter file as a second deployed definition. Do not create
+functions, triggers, types, or their folders until requirements and their
+house naming standards are confirmed.
+
 ### Infrastructure repository
 
 ```text

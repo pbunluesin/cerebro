@@ -1,6 +1,6 @@
 ---
 name: create-project
-description: Turn a vague software idea into a validated final requirement set and a right-sized, AI-ready project structure for Codex and Claude. Use when a user wants to start, bootstrap, architect, or “grill” a new project; asks for requirements discovery before coding; wants a best-practice Markdown/documentation tree; or needs default agent guidance, guardrails, review rules, and optional development-tool setup. Continue interviewing one decision at a time until the implementation-readiness gate passes, then scaffold and validate the project. Do not use to retrofit a mature repository; use audit-project instead.
+description: Turn a vague software idea into validated final requirements, approved current official implementation references, version/path-scoped Good/Bad rules, and a right-sized AI-ready project structure for Codex and Claude. Use when a user wants to start, bootstrap, architect, or “grill” a new project; asks for requirements discovery before coding; wants a best-practice Markdown/documentation tree; or needs default agent guidance, guardrails, review rules, and optional development-tool setup. Continue interviewing one decision at a time until the implementation-readiness gate passes, then scaffold and validate the project. Do not use to retrofit a mature repository; use audit-project instead.
 ---
 
 # Create Project
@@ -28,6 +28,9 @@ Accept natural-language instructions plus these optional controls:
 - `--target <path>`: project directory to create or populate.
 - `--profile minimal|standard|critical`: override automatic profile selection.
 - `--agents codex|claude|both`: default to `both`.
+- `--stacks <comma-separated-scaffold-scopes>`: normally derived from the
+  approved stack profile; currently `sqlserver` adds the team procedure
+  standard assets.
 - `--requirements-only`: stop after the final requirements package.
 - `--prototype`: allow a deliberately disposable prototype path; record omitted readiness work.
 - `--non-interactive`: use safe assumptions for non-blocking gaps, but stop on blocking product, security, data, or operational decisions.
@@ -97,9 +100,61 @@ When the requirements gate has no blocking gaps, produce a reviewable final pack
 
 Ask the user to confirm this package when their approval would materially change scope. If the user already authorized autonomous progress and no blocking decision remains, record that basis and continue.
 
-Before declaring `ARCHITECTURE_READY` for a maintained, multi-module, integration-heavy, or critical project, read [codebase-design](../codebase-design/SKILL.md) in full. Confirm that proposed modules hide coherent behavior, interfaces include caller-visible obligations, seams are justified by real variation or isolation needs, and tests can exercise behavior through observable interfaces. Do not force deep-module machinery onto a narrow minimal project.
+Declare `REQUIREMENTS_READY` only after this package is confirmed and its
+blocking questions are closed. Do not choose architecture or a scaffold merely
+because the requirements document now exists.
 
-## Stage 4: Select a project profile
+## Stage 4: Resolve official references and versioned Stack Packs
+
+Read [reference-selection.md](references/reference-selection.md) in full. This
+stage is mandatory unless `--requirements-only` is set.
+
+1. Resolve each runtime, framework, language, database, CSS tool, and deployable
+   path to an exact version or an explicit legacy constraint. Do not infer a
+   version from syntax, habit, or a default branch.
+2. Start from [official-sources.json](references/official-sources.json), then
+   verify current official release/support evidence when network use is
+   authorized. Treat default branches, preview releases, and community
+   boilerplates as candidates—not authority.
+3. Select at most four references per deployable: official scaffold, the
+   smallest relevant official example, official docs, then an approved house
+   standard when one exists. Record exact versions/tags/commits and why each
+   reference fits the confirmed requirement.
+4. Surface source age, version conflicts, platform constraints, and any
+   architecture imported by a scaffold. Obtain and record approval for the
+   candidate reference set when it materially constrains the project.
+5. Reach `REFERENCE_APPROVED` before architecture or materialization. If the
+   source catalog or version policy is stale, exact versions are missing, path
+   scope is ambiguous, or a requested version is outside the approved range,
+   stop this gate and read
+   [update-stack-packs.md](references/update-stack-packs.md); never select a
+   nearby rule.
+6. Generate only the applicable rules with the dependency-free selector:
+
+   ```bash
+   python3 scripts/select_stack_rules.py \
+     --stack <scope>@<exact-version> \
+     --path '<scope>=<project-relative-glob>' \
+     --source-ref '<catalog-scope>=<exact-package-tag-commit-or-dated-docs-ref>' \
+     --approval-record <requirement-or-ADR-checkpoint> \
+     --out <working-stack-profile.json>
+   ```
+
+   Repeat `--stack` for versioned included scopes such as TypeScript, React, or
+   accessibility. A framework path propagates to its included scopes; independent
+   deployables need independent `--path` values.
+
+The generated profile is the project-facing source. Do not copy the complete
+[best-practices.md](references/stack-packs/best-practices.md) or
+[anti-patterns.md](references/stack-packs/anti-patterns.md) into a project.
+When SQL Server stored procedures are selected, read
+[sqlserver-house-standard.md](references/stack-packs/sqlserver-house-standard.md)
+in full and record its approved version/hash through the generated profile.
+Treat it as mandatory user team policy rather than universal Microsoft best
+practice. Naming for functions, triggers, types, and other SQL Server objects
+remains unresolved; never infer it from the procedure convention.
+
+## Stage 5: Select a project profile and architecture
 
 Read [project-profiles.md](references/project-profiles.md) in full. Select the smallest profile that covers the actual risk:
 
@@ -109,36 +164,58 @@ Read [project-profiles.md](references/project-profiles.md) in full. Select the s
 
 Never downgrade a project merely to reduce documentation. Explain any profile override.
 
-## Stage 5: Materialize the project
+Before declaring `ARCHITECTURE_READY` for a maintained, multi-module,
+integration-heavy, or critical project, read
+[codebase-design](../codebase-design/SKILL.md) in full. Confirm that proposed
+modules hide coherent behavior, interfaces include caller-visible obligations,
+seams are justified by real variation or isolation needs, and tests can
+exercise behavior through observable interfaces. Do not force deep-module machinery onto a narrow minimal project.
+
+## Stage 6: Materialize the project
 
 If `--requirements-only` is absent:
 
 1. Require a concrete target path and project name.
-2. Dry-run the scaffold first:
+2. If an approved official initializer is selected, show its exact pinned
+   command, prerequisites, target writes, network use, and dependency impact.
+   Run its help/dry-run first and request approval before downloads. Never use
+   `@latest`, an unpinned global CLI, or an upstream default branch as the
+   production baseline.
+3. Run the approved initializer into an empty target (or an isolated staging
+   directory when ownership conflicts are expected). Then dry-run the Cerebro
+   scaffold with `--merge` so every preserved conflict is visible. If no
+   initializer is selected, dry-run Cerebro directly:
 
    ```bash
-   python3 scripts/bootstrap_project.py --target <path> --name <name> --profile <profile> --agents <agents> --dry-run
+   python3 scripts/bootstrap_project.py --target <path> --name <name> --profile <profile> --agents <agents> [--stacks sqlserver] --dry-run
    ```
 
-3. Show conflicts. Do not overwrite existing files unless the user explicitly authorizes merge or replacement.
-4. Run the scaffold without `--dry-run`.
-5. Replace generated `TBD` sections with the confirmed requirement package. Preserve `TBD` only for explicitly non-blocking unknowns and name an owner or resolution point.
-6. Follow [document-contracts.md](references/document-contracts.md); do not duplicate policy across generated files.
-7. Populate `docs/CONTEXT.md` with confirmed project-wide language. If multiple real bounded contexts were confirmed, also create `docs/CONTEXT_MAP.md` and `docs/contexts/*.md` lazily and route context-specific terms to their owner; do not infer contexts from folders or deployables alone.
-8. Read [stack-layouts.md](references/stack-layouts.md), select the smallest source tree that matches the confirmed deployable units, and add stack-native source/test/config directories. Do not create speculative layers or empty services.
-9. Prefer an official framework initializer when it materially reduces incorrect boilerplate, but show its command, expected writes, network use, and dependency impact before running it. Request approval for downloads or install steps.
+4. Show conflicts. Do not overwrite existing files unless the user explicitly authorizes merge or replacement. Run the scaffold without `--dry-run`.
+5. Write the approved selector output to
+   `.cerebro/stack-profile.json`. It must contain `status: approved`, the
+   approval record, exact versions and paths, source/pack refs, and selected
+   rule IDs.
+6. Replace generated `TBD` sections with the confirmed requirement package. Preserve `TBD` only for explicitly non-blocking unknowns and name an owner or resolution point.
+7. Follow [document-contracts.md](references/document-contracts.md); do not duplicate policy across generated files.
+8. Populate `docs/CONTEXT.md` with confirmed project-wide language. If multiple real bounded contexts were confirmed, also create `docs/CONTEXT_MAP.md` and `docs/contexts/*.md` lazily and route context-specific terms to their owner; do not infer contexts from folders or deployables alone.
+9. Read [stack-layouts.md](references/stack-layouts.md), select the smallest source tree that matches the confirmed deployable units, and add stack-native source/test/config directories. Do not create speculative layers or empty services.
+   When the approved stack includes SQL Server procedures, pass
+   `--stacks sqlserver`; this adds `docs/DATA.md` plus SQL-only team templates
+   under `database/templates/sqlserver/`. Populate a template only after the
+   procedure input gate is complete. Do not copy the raw `temp/db_standard`
+   notes or invent other SQL object standards.
 10. Create ADRs only through `domain-modeling`'s decision gate. Keep the core record concise and add optional sections only when they preserve material reasoning.
 11. Do not create `PROCESS.md`. Place durable rules in `AGENTS.md`, current state in `PROJECT_STATE.md`, and repeatable process in this plugin's skills.
 12. Before any commit handoff, run the safety contract's Dissent and commit gates; scaffolding alone is not completion evidence.
 
-## Stage 6: Configure agent adapters
+## Stage 7: Configure agent adapters
 
 - Always generate `AGENTS.md` as the shared, concise project instruction surface.
 - Generate `CLAUDE.md`, `.claude/rules/`, and project-scoped Claude agents only when `claude` or `both` is selected.
 - Do not copy the Cerebro skills into every generated project; the installed plugin remains their source.
 - Keep agent files as indexes and routing rules, not duplicated project specifications.
 
-## Stage 7: Offer optional tooling
+## Stage 8: Offer optional tooling
 
 Read [tooling-integrations.md](references/tooling-integrations.md) only when the user asks for tooling setup or the environment would materially benefit.
 
@@ -156,12 +233,12 @@ Start detection with the bundled read-only command when it is available:
 python3 scripts/check_tooling.py --target <path>
 ```
 
-## Stage 8: Validate readiness
+## Stage 9: Validate readiness
 
 Run:
 
 ```bash
-python3 scripts/validate_project.py --target <path> --profile <profile> --agents <agents>
+python3 scripts/validate_project.py --target <path> --profile <profile> --agents <agents> [--stacks sqlserver]
 ```
 
 Do not report `IMPLEMENTATION_READY` unless:
@@ -169,6 +246,7 @@ Do not report `IMPLEMENTATION_READY` unless:
 - validation exits successfully
 - no unresolved template tokens remain
 - every blocking gate is resolved
+- `.cerebro/stack-profile.json` is approved, current, and internally consistent
 - acceptance criteria have a verification method
 - critical projects include security, rollback, observability, and recovery coverage
 - the generated `PROJECT_STATE.md` names the first safe vertical slice and validation commands
@@ -181,6 +259,7 @@ Report:
 - final readiness state
 - files created, updated, skipped, or conflicted
 - confirmed assumptions and remaining non-blocking questions
+- approved official references, exact stack versions, and Stack Pack versions
 - validation commands and results
 - optional tooling detected/configured/skipped
 - first vertical slice and its definition of done

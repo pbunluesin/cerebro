@@ -1,0 +1,54 @@
+/*
+------------------------|-------------------------------|---------------------------------------------
+-- Author               | DateTime                      | Comment
+------------------------|-------------------------------|---------------------------------------------
+-- <Developer Name>     | <YYYY-MM-DD>                  | Create SP V<version>: <Purpose>
+------------------------|-------------------------------|---------------------------------------------
+
+-- EXEC_TEST:
+-- EXEC [<schema_name>].[update_<module>_v<version>]
+--     @<id_parameter> = <safe_example_id>
+--     , @<parameter_1> = <safe_example_value>;
+
+-- PURPOSE:
+-- <Describe the business update and caller-visible outcome>
+*/
+
+-- Team template assumes a GO-aware SQL deployment tool; confirm the selected mode.
+CREATE PROC [<schema_name>].[update_<module>_v<version>]
+(
+    @<id_parameter> <SQL_ID_DATA_TYPE>
+    , @<parameter_1> <SQL_DATA_TYPE>
+)
+AS
+BEGIN
+    SET NOCOUNT ON;
+    SET XACT_ABORT ON;
+
+    BEGIN TRY
+        BEGIN TRAN;
+
+        IF NOT EXISTS
+        (
+            SELECT  1
+            FROM    [<schema_name>].[<table_name>]
+            WHERE   <id_column> = @<id_parameter>
+        )
+        BEGIN
+            RAISERROR(N'<Business validation: record not found>', 16, 1);
+        END;
+
+        UPDATE  [<schema_name>].[<table_name>]
+        SET     <column_1> = @<parameter_1>
+        WHERE   <id_column> = @<id_parameter>;
+
+        COMMIT TRAN;
+    END TRY
+    BEGIN CATCH
+        IF XACT_STATE() <> 0
+            ROLLBACK TRAN;
+
+        THROW;
+    END CATCH;
+END;
+GO

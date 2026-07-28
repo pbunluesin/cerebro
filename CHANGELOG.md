@@ -4,10 +4,29 @@ All notable changes to Cerebro are documented here.
 
 ## Unreleased
 
+### Added
+
+- Added a mandatory post-requirements Reference Selection Gate for current
+  official scaffolds, documentation, and focused example repositories.
+- Added versioned Good/Bad Stack Packs for Node.js, PHP, TypeScript, Next.js, React,
+  NestJS, Vue, Tailwind, accessibility, PostgreSQL, and SQL Server.
+- Added dependency-free deterministic pack extraction, exact-version/path rule
+  selection, source freshness gates, and generated
+  `.cerebro/stack-profile.json` records.
+- Added the versioned `DBHS-01` SQL Server stored procedure team house standard,
+  16 exact Good/Bad rule pairs, hash/freshness validation, and stack-conditional
+  GET/INSERT/UPDATE/DELETE/transaction SQL templates.
+
 ### Changed
 
 - Made handoff explicit-only, restored deterministic Git-context collection, and expanded `PROJECT_STATE.md` with bounded operational continuation context.
 - Added source-owned cross-project dispatches with authorized target inbox pointers and detailed SQL Server stored procedure contract verification.
+- Moved the temporary technology guidance into canonical
+  `skills/create-project/references/stack-packs/` sources and made
+  observed-versus-approved upstream refs reviewable and easy to refresh.
+- Classified the supplied SQL Server procedure convention as mandatory team
+  policy rather than universal best practice, while preserving documented
+  engine/concurrency trade-offs and scoped exception handling.
 
 ## 0.1.0 - 2026-07-18
 

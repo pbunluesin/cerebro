@@ -11,6 +11,8 @@
 7. Every generated project starts with the same evidence, dissent, scope, reversibility, and workspace-boundary safety contract.
 8. Claude Code implements and fixes; a freshly resolved current Codex model performs independent review.
 9. Domain language and module-design vocabulary remain composable disciplines instead of being duplicated inside every workflow.
+10. Good/Bad stack rules resolve against exact versions and path scopes, and
+    upstream changes enter through a reviewed observed-to-approved lifecycle.
 
 ## Component ownership
 
@@ -18,7 +20,14 @@
 |---|---|
 | `.codex-plugin/plugin.json` | Codex plugin identity and skill discovery |
 | `.claude-plugin/plugin.json` | Claude Code plugin identity |
-| `skills/create-project/` | End-to-end discovery, grilling, readiness, and scaffolding |
+| `skills/create-project/` | End-to-end discovery, grilling, official-reference selection, versioned Stack Pack resolution, readiness, and scaffolding |
+| `skills/create-project/references/official-sources.json` | Reviewed official scaffold/docs/example routing, observed refs, approved refs, and freshness deadlines |
+| `skills/create-project/references/stack-version-policy.json` | Supported version constraints, includes, and rule-specific applicability |
+| `skills/create-project/references/stack-packs/` | Human Good/Bad sources plus deterministic machine-readable `rules.json` |
+| `skills/create-project/references/stack-packs/sqlserver-house-standard.md` | Versioned user-team policy for SQL Server stored procedures, including known trade-offs, verification, and exceptions |
+| `skills/create-project/assets/project/database/templates/sqlserver/` | SQL-only house templates materialized only for approved SQL Server procedure projects |
+| `skills/create-project/scripts/extract_stack_rules.py` | Dependency-free pack validation and deterministic JSON generation |
+| `skills/create-project/scripts/select_stack_rules.py` | Fail-closed exact-version/path rule selection and project profile generation |
 | `skills/audit-project/` | Existing-repository gap analysis and safe retrofit |
 | `skills/domain-modeling/` | Canonical domain language, bounded contexts, and ADR gate |
 | `skills/codebase-design/` | Deep-module vocabulary, seam strategy, and interface comparison |
@@ -43,6 +52,11 @@ REQUIREMENTS_READY
   -> validate goals, users, scope, behavior, data, risk, and acceptance
   -> resolve all implementation-blocking questions
 
+REFERENCE_APPROVED
+  -> resolve exact stack versions and deployable path scopes
+  -> verify current official scaffold/docs/example evidence
+  -> approve source refs and generate the version-compatible rule profile
+
 ARCHITECTURE_READY
   -> define boundaries, complete module interfaces, justified seams,
      data ownership, security, operations, validation, and rollback
@@ -62,6 +76,7 @@ The user may stop or revise at any checkpoint. A prototype request can bypass th
 |---|---|
 | Human quick start | `README.md` |
 | Durable cross-agent rules | `AGENTS.md` |
+| Exact stack versions, path scopes, approved upstream refs, Stack Pack hashes, selected rule IDs | `.cerebro/stack-profile.json` |
 | Claude-specific routing | `CLAUDE.md` when Claude is selected |
 | Current phase, goal, risks, verified stopping point, operational continuation context, next action | `PROJECT_STATE.md` |
 | Problem, goals, users, success measures | `docs/PRODUCT.md` |
@@ -71,6 +86,7 @@ The user may stop or revise at any checkpoint. A prototype request can bypass th
 | System boundaries and flows | `docs/ARCHITECTURE.md` |
 | Review invariants and verification | `docs/quality/REVIEW_CONTRACT.md` |
 | Hard-to-reverse decisions | `docs/decisions/` |
+| SQL Server procedure starter objects | `database/templates/sqlserver/` when the approved stack selects SQL Server procedures |
 
 Conditional documents cover APIs, data, security, testing, and operations. The project profile determines which are required.
 

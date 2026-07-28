@@ -1,0 +1,94 @@
+{
+  "schema_version": 1,
+  "policy_version": "1.0.0",
+  "verified_at": "2026-07-28",
+  "next_review_at": "2026-08-28",
+  "fail_closed_on": [
+    "missing-version",
+    "unsupported-version",
+    "stale-source-catalog",
+    "ambiguous-path-scope",
+    "unmapped-version-bound-rule"
+  ],
+  "scopes": {
+    "nodejs": {
+      "constraint": ">=22,<25",
+      "allowed_majors": [22, 24],
+      "includes": ["global"],
+      "version_source": "NODE-01"
+    },
+    "php73": {
+      "constraint": "=7.3",
+      "includes": ["global"],
+      "version_source": "PHP-01"
+    },
+    "php8": {
+      "constraint": ">=8.2,<8.6",
+      "includes": ["global"],
+      "version_source": "PHP-01",
+      "rule_constraints": {
+        "PHP8-DYNAMIC-001": ">=8.2,<8.6"
+      }
+    },
+    "typescript": {
+      "constraint": ">=6,<7",
+      "includes": ["global"],
+      "version_source": "TS-03",
+      "rule_constraints": {
+        "TS-VERSION-001": ">=6,<7",
+        "TS-CONFIG-002": ">=6,<7",
+        "TS-LEGACY-001": ">=6,<7",
+        "TS-CLI-001": ">=6,<7"
+      }
+    },
+    "nextjs": {
+      "constraint": ">=16,<17",
+      "includes": ["global", "nodejs", "typescript", "react", "a11y"],
+      "version_source": "NXT-02",
+      "rule_constraints": {
+        "NEXT-LINT-001": ">=16,<17",
+        "NEXT-CONFIG-001": ">=16,<17",
+        "NEXT-CACHE-002": ">=16,<17",
+        "NEXT-REQUEST-001": ">=15,<17"
+      }
+    },
+    "react": {
+      "constraint": ">=19,<20",
+      "includes": ["global", "nodejs", "typescript", "a11y"],
+      "version_source": "REACT-01"
+    },
+    "nestjs": {
+      "constraint": ">=11,<12",
+      "includes": ["global", "nodejs", "typescript"],
+      "version_source": "NEST-01"
+    },
+    "vue": {
+      "constraint": ">=3,<4",
+      "includes": ["global", "nodejs", "typescript", "a11y"],
+      "version_source": "VUE-01"
+    },
+    "tailwind": {
+      "constraint": ">=4,<5",
+      "includes": ["global", "a11y"],
+      "version_source": "TW-03",
+      "rule_constraints": {
+        "TW-BROWSER-001": ">=4,<5"
+      }
+    },
+    "a11y": {
+      "constraint": "=2.2",
+      "includes": ["global"],
+      "version_source": "A11Y-01"
+    },
+    "postgresql": {
+      "constraint": ">=14,<19",
+      "includes": ["global"],
+      "version_source": "PG-01"
+    },
+    "sqlserver": {
+      "constraint": ">=16,<18",
+      "includes": ["global"],
+      "version_source": "MSSQL-01"
+    }
+  }
+}

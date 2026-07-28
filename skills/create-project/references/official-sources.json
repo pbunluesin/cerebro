@@ -1,0 +1,274 @@
+{
+  "schema_version": 1,
+  "catalog_version": "1.1.0",
+  "verified_at": "2026-07-28",
+  "next_light_review_at": "2026-08-28",
+  "next_full_review_at": "2026-10-28",
+  "policy": {
+    "selection_order": [
+      "official-scaffold",
+      "official-feature-example",
+      "official-documentation",
+      "approved-house-standard",
+      "mature-open-source-reference"
+    ],
+    "max_selected_references": 4,
+    "default_branch_is_authority": false,
+    "resolve_exact_version_at_use": true,
+    "semantic_updates_require_review": true
+  },
+  "stacks": {
+    "nodejs": {
+      "display_name": "Node.js LTS runtime",
+      "new_project_allowed": true,
+      "approved_range": ">=22,<25",
+      "approved_majors": [22, 24],
+      "observed_ref": "Node.js 24.18.0 latest LTS; Node.js 22 LTS; Node.js 26 Current",
+      "approved_ref": "Node.js 24.18.0 latest LTS; Node.js 22 LTS",
+      "observation_status": "reviewed-deferred",
+      "observation_note": "Node.js 26 remains Current. Review promotion only after its official LTS transition and framework/hosting compatibility evidence.",
+      "scaffold": null,
+      "docs": [
+        "https://nodejs.org/en/about/previous-releases",
+        "https://nodejs.org/api/packages.html",
+        "https://nodejs.org/api/process.html",
+        "https://nodejs.org/en/learn/getting-started/security-best-practices"
+      ],
+      "examples": [
+        "https://github.com/nodejs/node"
+      ],
+      "selection_note": "Production applications use Active or Maintenance LTS. As reviewed on 2026-07-28, select exact Node 22 or 24; Node 26 remains Current until its LTS transition is reviewed."
+    },
+    "typescript": {
+      "display_name": "TypeScript",
+      "new_project_allowed": true,
+      "approved_range": ">=6,<7",
+      "observed_ref": "TypeScript 7.0 stable announced 2026-07-08",
+      "approved_ref": "TypeScript 6.0.3",
+      "observation_status": "project-compatibility-review-required",
+      "observation_note": "TypeScript 7 uses the native compiler. Promotion requires selected framework, compiler-API, plugin, lint, editor, and CI evidence.",
+      "scaffold": null,
+      "docs": [
+        "https://devblogs.microsoft.com/typescript/announcing-typescript-6-0/",
+        "https://devblogs.microsoft.com/typescript/announcing-typescript-7-0/",
+        "https://www.typescriptlang.org/tsconfig/"
+      ],
+      "examples": [
+        "https://github.com/microsoft/TypeScript/releases"
+      ],
+      "selection_note": "TypeScript 7 is observed but not blanket-approved because framework, plugin, compiler-API, and editor compatibility are project-specific. Use exact TypeScript 6.0.x unless a reviewed compatibility update changes this policy."
+    },
+    "a11y": {
+      "display_name": "WCAG accessibility baseline",
+      "new_project_allowed": true,
+      "approved_range": "=2.2",
+      "observed_ref": "WCAG 2.2 W3C Recommendation",
+      "approved_ref": "WCAG 2.2 W3C Recommendation",
+      "scaffold": null,
+      "docs": [
+        "https://www.w3.org/TR/WCAG22/",
+        "https://www.w3.org/WAI/standards-guidelines/wcag/"
+      ],
+      "examples": [],
+      "selection_note": "WCAG conformance needs automated and manual evidence. The version is a standards baseline, not a package version."
+    },
+    "php73": {
+      "display_name": "PHP 7.3 legacy",
+      "new_project_allowed": false,
+      "approved_range": "=7.3",
+      "observed_ref": "PHP 7.3 EOL",
+      "approved_ref": "PHP 7.3 EOL",
+      "scaffold": null,
+      "docs": [
+        "https://www.php.net/releases/index.php",
+        "https://www.php.net/manual/en/migration74.php",
+        "https://getcomposer.org/doc/03-cli.md"
+      ],
+      "examples": [],
+      "selection_note": "Use only for an explicitly constrained legacy path. Never select it as a new production baseline."
+    },
+    "php8": {
+      "display_name": "PHP 8 modern",
+      "new_project_allowed": true,
+      "approved_range": ">=8.2,<8.6",
+      "observed_ref": "PHP 8.2-8.5 supported on 2026-07-28",
+      "approved_ref": "PHP 8.2-8.5 supported on 2026-07-28",
+      "scaffold": {
+        "mode": "framework-dependent",
+        "command": "composer create-project <official-framework-package>:<approved-version> <target>",
+        "dry_run": "composer create-project --help"
+      },
+      "docs": [
+        "https://www.php.net/supported-versions.php",
+        "https://www.php.net/manual/en/",
+        "https://getcomposer.org/doc/03-cli.md",
+        "https://www.php-fig.org/per/coding-style/"
+      ],
+      "examples": [],
+      "selection_note": "PHP has no universal application scaffold. Select the exact framework skeleton only after the framework and minimum PHP minor are confirmed."
+    },
+    "nextjs": {
+      "display_name": "Next.js with TypeScript",
+      "new_project_allowed": true,
+      "approved_range": ">=16,<17",
+      "observed_ref": "Next.js 16 official docs",
+      "approved_ref": "Next.js 16 official docs",
+      "scaffold": {
+        "mode": "official-cli",
+        "repository": "https://github.com/vercel/next.js/tree/canary/packages/create-next-app",
+        "command": "npx create-next-app@<approved-version> <target> --ts --app --eslint --skip-install --disable-git",
+        "dry_run": "npx create-next-app@<approved-version> --help"
+      },
+      "docs": [
+        "https://nextjs.org/docs/app/getting-started",
+        "https://nextjs.org/docs/app/api-reference/cli",
+        "https://nextjs.org/docs/app/guides"
+      ],
+      "examples": [
+        "https://github.com/vercel/next.js/tree/canary/examples"
+      ],
+      "selection_note": "Resolve the stable CLI/package version first. Use only feature-specific official examples and pin the selected ref; never treat canary as the production baseline."
+    },
+    "react": {
+      "display_name": "React with TypeScript",
+      "new_project_allowed": true,
+      "approved_range": ">=19,<20",
+      "observed_ref": "React 19.2 official docs",
+      "approved_ref": "React 19.2 official docs",
+      "scaffold": {
+        "mode": "requirements-routed",
+        "command": "npm create vite@<approved-version> <target> -- --template react-ts",
+        "dry_run": "npm create vite@<approved-version> -- --help"
+      },
+      "docs": [
+        "https://react.dev/learn/creating-a-react-app",
+        "https://react.dev/learn/build-a-react-app-from-scratch",
+        "https://vite.dev/guide/"
+      ],
+      "examples": [
+        "https://react.dev/learn"
+      ],
+      "selection_note": "React recommends a framework for new applications. Use Vite only when the requirements establish a client-only/custom-framework path; Create React App is deprecated."
+    },
+    "nestjs": {
+      "display_name": "NestJS with TypeScript",
+      "new_project_allowed": true,
+      "approved_range": ">=11,<12",
+      "observed_ref": "NestJS 11.1.24",
+      "approved_ref": "NestJS 11.1.24",
+      "scaffold": {
+        "mode": "official-cli",
+        "repository": "https://github.com/nestjs/typescript-starter",
+        "command": "npx @nestjs/cli@<approved-version> new <target> --strict --skip-git --skip-install --package-manager <manager>",
+        "dry_run": "npx @nestjs/cli@<approved-version> new <target> --strict --dry-run"
+      },
+      "docs": [
+        "https://docs.nestjs.com/first-steps",
+        "https://docs.nestjs.com/cli/overview",
+        "https://docs.nestjs.com/techniques/validation",
+        "https://docs.nestjs.com/fundamentals/testing"
+      ],
+      "examples": [
+        "https://github.com/nestjs/nest/tree/master/sample",
+        "https://github.com/nestjs/typescript-starter"
+      ],
+      "selection_note": "Start from the official CLI/starter. Select only the official samples that match confirmed transports, persistence, auth, or deployment requirements."
+    },
+    "vue": {
+      "display_name": "Vue with TypeScript",
+      "new_project_allowed": true,
+      "approved_range": ">=3,<4",
+      "observed_ref": "create-vue 3.22.3; Vue 3 official docs",
+      "approved_ref": "create-vue 3.22.3; Vue 3 official docs",
+      "scaffold": {
+        "mode": "official-cli",
+        "repository": "https://github.com/vuejs/create-vue",
+        "command": "npm create vue@<approved-version> <target> -- --typescript <confirmed-feature-flags>",
+        "dry_run": "npm create vue@<approved-version> -- --help"
+      },
+      "docs": [
+        "https://vuejs.org/guide/quick-start.html",
+        "https://vuejs.org/guide/",
+        "https://vite.dev/guide/"
+      ],
+      "examples": [
+        "https://vuejs.org/examples/"
+      ],
+      "selection_note": "Choose Router, Pinia, Vitest, and E2E options only when requirements justify them. Vue CLI is maintenance-only for new projects."
+    },
+    "tailwind": {
+      "display_name": "Tailwind CSS",
+      "new_project_allowed": true,
+      "approved_range": ">=4,<5",
+      "observed_ref": "Tailwind v4 official docs",
+      "approved_ref": "Tailwind v4 official docs",
+      "scaffold": null,
+      "docs": [
+        "https://tailwindcss.com/docs/installation/framework-guides",
+        "https://tailwindcss.com/docs/detecting-classes-in-source-files",
+        "https://tailwindcss.com/docs/compatibility"
+      ],
+      "examples": [],
+      "selection_note": "Tailwind is integrated through the selected framework's official guide; it does not choose the application architecture."
+    },
+    "postgresql": {
+      "display_name": "PostgreSQL",
+      "new_project_allowed": true,
+      "approved_range": ">=14,<19",
+      "observed_ref": "PostgreSQL 18.4 current; 14-18 supported",
+      "approved_ref": "PostgreSQL 18.4 current; 14-18 supported",
+      "scaffold": null,
+      "docs": [
+        "https://www.postgresql.org/support/versioning/",
+        "https://www.postgresql.org/docs/current/",
+        "https://www.postgresql.org/docs/current/ddl.html"
+      ],
+      "examples": [
+        "https://github.com/postgres/postgres"
+      ],
+      "selection_note": "Resolve the deployed major and managed-service capabilities. The source repository is behavior evidence, not an application scaffold."
+    },
+    "sqlserver": {
+      "display_name": "SQL Server",
+      "new_project_allowed": true,
+      "approved_range": ">=16,<18",
+      "observed_ref": "SQL Server 2022/2025 and SQL Database Projects docs",
+      "approved_ref": "SQL Server 2022/2025 and SQL Database Projects docs",
+      "scaffold": {
+        "mode": "official-database-project",
+        "repository": "https://github.com/microsoft/DacFx",
+        "prerequisite": "dotnet new install Microsoft.Build.Sql.Templates::<approved-template-version>",
+        "command": "dotnet new sqlproj -n <database-project> -tp <confirmed-target-platform>",
+        "dry_run": "dotnet new sqlproj --help"
+      },
+      "docs": [
+        "https://learn.microsoft.com/en-us/sql/tools/sql-database-projects/sql-database-projects?view=sql-server-ver17",
+        "https://learn.microsoft.com/en-us/sql/t-sql/statements/create-procedure-transact-sql?view=sql-server-ver17",
+        "https://learn.microsoft.com/en-us/sql/t-sql/statements/set-transaction-isolation-level-transact-sql?view=sql-server-ver17",
+        "https://learn.microsoft.com/en-us/sql/t-sql/language-elements/transactions-transact-sql?view=sql-server-ver17",
+        "https://learn.microsoft.com/en-us/sql/t-sql/language-elements/save-transaction-transact-sql?view=sql-server-ver17",
+        "https://learn.microsoft.com/en-us/sql/t-sql/language-elements/throw-transact-sql?view=sql-server-ver17",
+        "https://learn.microsoft.com/en-us/sql/relational-databases/tables/create-unique-constraints?view=sql-server-ver17",
+        "https://learn.microsoft.com/en-us/sql/relational-databases/performance/optional-parameter-optimization?view=sql-server-ver17",
+        "https://learn.microsoft.com/en-us/sql/relational-databases/tables/use-table-valued-parameters-database-engine?view=sql-server-ver17",
+        "https://learn.microsoft.com/en-us/sql/relational-databases/triggers/create-dml-triggers-to-handle-multiple-rows-of-data?view=sql-server-ver17"
+      ],
+      "house_standards": [
+        {
+          "id": "DBHS-01",
+          "display_name": "SQL Server Stored Procedure Team House Standard",
+          "version": "1.0.0",
+          "status": "approved",
+          "scope": "stored-procedures-only",
+          "path": "stack-packs/sqlserver-house-standard.md",
+          "sha256": "0dd0cd47b81042ad9993918608b0dc7a5da24e9f147547ac4791c0e2ee7dcdba",
+          "next_review_at": "2026-10-28"
+        }
+      ],
+      "examples": [
+        "https://github.com/microsoft/sql-server-samples"
+      ],
+      "selection_note": "Confirm SQL Server/Azure SQL target, compatibility level, deployment tooling, and Visual Studio versus VS Code constraints. Apply DBHS-01 to stored procedures. Naming for functions, triggers, types, and other objects remains intentionally pending."
+    }
+  }
+}

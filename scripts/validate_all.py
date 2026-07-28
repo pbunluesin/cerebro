@@ -6,6 +6,7 @@ from __future__ import annotations
 import ast
 import json
 import re
+import subprocess
 import sys
 from pathlib import Path
 
@@ -37,7 +38,15 @@ REQUIRED_SKILLS = {
 }
 SKILL_CONTRACT_MARKERS = {
     "codebase-design": ("deep-module-design.md", "interface", "seam", "locality", "at least two"),
-    "create-project": ("domain-modeling", "codebase-design", "ARCHITECTURE_READY"),
+    "create-project": (
+        "domain-modeling",
+        "codebase-design",
+        "REFERENCE_APPROVED",
+        "reference-selection.md",
+        "select_stack_rules.py",
+        ".cerebro/stack-profile.json",
+        "ARCHITECTURE_READY",
+    ),
     "domain-modeling": ("domain-modeling-standard.md", "docs/CONTEXT.md", "docs/CONTEXT_MAP.md", "all three gates"),
     "improve-codebase-architecture": (
         "architecture-improvement-standard.md",
@@ -227,6 +236,41 @@ def main() -> int:
         if ".git" not in path.parts:
             errors.extend(validate_python(path))
 
+    stack_extractor = (
+        SKILLS / "create-project" / "scripts" / "extract_stack_rules.py"
+    )
+    stack_check = subprocess.run(
+        [sys.executable, str(stack_extractor), "--check"],
+        cwd=ROOT,
+        text=True,
+        capture_output=True,
+        check=False,
+    )
+    if stack_check.returncode:
+        errors.append(
+            "versioned Stack Pack validation failed: "
+            + (stack_check.stdout + stack_check.stderr).strip()
+        )
+    else:
+        try:
+            generated_rules = json.loads(
+                (
+                    SKILLS
+                    / "create-project"
+                    / "references"
+                    / "stack-packs"
+                    / "rules.json"
+                ).read_text(encoding="utf-8")
+            )
+            scopes = {rule["scope"] for rule in generated_rules["rules"]}
+            for required_scope in ("nodejs", "react", "nestjs", "sqlserver"):
+                if required_scope not in scopes:
+                    errors.append(
+                        f"versioned Stack Pack missing scope {required_scope}"
+                    )
+        except (OSError, json.JSONDecodeError, KeyError, TypeError):
+            errors.append("versioned Stack Pack rules.json is malformed")
+
     handoff_contract = (SKILLS / "handoff" / "references" / "handoff-contract.md").read_text(encoding="utf-8")
     for marker in (
         ".cerebro/inbox/",
@@ -249,15 +293,67 @@ def main() -> int:
         from bootstrap_project import asset_for, planned_files
 
         combinations = (
-            ("minimal", "codex", set()),
-            ("minimal", "both", set()),
-            ("standard", "both", {"api", "data"}),
-            ("critical", "both", {"api", "migration"}),
+            ("minimal", "codex", set(), set()),
+            ("minimal", "both", set(), set()),
+            ("standard", "both", {"api", "data"}, set()),
+            ("standard", "both", {"data"}, {"sqlserver"}),
+            ("critical", "both", {"api", "migration"}, set()),
         )
-        for profile, agents, features in combinations:
-            for relative_path in planned_files(profile, agents, features):
+        for profile, agents, features, stacks in combinations:
+            for relative_path in planned_files(
+                profile, agents, features, stacks
+            ):
                 if not asset_for(relative_path).is_file():
                     errors.append(f"missing asset for {profile}/{agents}: {relative_path}.tmpl")
+
+        sqlserver_reference = (
+            SKILLS
+            / "create-project"
+            / "references"
+            / "stack-packs"
+            / "sqlserver-house-standard.md"
+        ).read_text(encoding="utf-8")
+        for marker in (
+            'standard_version: "1.0.0"',
+            "authority: user-team-policy",
+            "READ UNCOMMITTED",
+            "RAISERROR",
+            "Known trade-offs and exceptions",
+        ):
+            if marker not in sqlserver_reference:
+                errors.append(
+                    "sqlserver-house-standard.md: missing team-policy marker "
+                    f"{marker}"
+                )
+
+        sqlserver_assets = (
+            "stored-procedure-get.sql",
+            "stored-procedure-insert.sql",
+            "stored-procedure-update.sql",
+            "stored-procedure-delete.sql",
+            "stored-procedure-write-transaction.sql",
+        )
+        sqlserver_asset_root = (
+            SKILLS
+            / "create-project"
+            / "assets"
+            / "project"
+            / "database"
+            / "templates"
+            / "sqlserver"
+        )
+        for relative_path in sqlserver_assets:
+            text = (sqlserver_asset_root / f"{relative_path}.tmpl").read_text(
+                encoding="utf-8"
+            )
+            if "```" in text or "# template" in text:
+                errors.append(
+                    f"{relative_path}.tmpl: SQL template contains Markdown"
+                )
+            if "EXEC_TEST" not in text or "SET NOCOUNT ON;" not in text:
+                errors.append(
+                    f"{relative_path}.tmpl: missing SQL house marker"
+                )
     except (ImportError, ValueError) as exc:
         errors.append(f"bootstrap asset validation failed: {exc}")
 

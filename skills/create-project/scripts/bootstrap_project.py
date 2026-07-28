@@ -14,6 +14,7 @@ SCRIPT_DIR = Path(__file__).resolve().parent
 ASSET_ROOT = SCRIPT_DIR.parent / "assets" / "project"
 
 MINIMAL_FILES = {
+    ".cerebro/stack-profile.json",
     ".gitignore",
     "AGENTS.md",
     "PROJECT_STATE.md",
@@ -51,6 +52,17 @@ FEATURE_FILES = {
     "security": {"docs/SECURITY.md"},
 }
 
+STACK_FILES = {
+    "sqlserver": {
+        "docs/DATA.md",
+        "database/templates/sqlserver/stored-procedure-delete.sql",
+        "database/templates/sqlserver/stored-procedure-get.sql",
+        "database/templates/sqlserver/stored-procedure-insert.sql",
+        "database/templates/sqlserver/stored-procedure-update.sql",
+        "database/templates/sqlserver/stored-procedure-write-transaction.sql",
+    },
+}
+
 CLAUDE_BASE_FILES = {
     "CLAUDE.md",
     ".claude/rules/guardrails.md",
@@ -76,7 +88,20 @@ def parse_features(raw: str) -> set[str]:
     return features
 
 
-def planned_files(profile: str, agents: str, features: set[str]) -> list[str]:
+def parse_stacks(raw: str) -> set[str]:
+    stacks = {item.strip().lower() for item in raw.split(",") if item.strip()}
+    unknown = stacks - STACK_FILES.keys()
+    if unknown:
+        raise ValueError(f"unknown scaffold stacks: {', '.join(sorted(unknown))}")
+    return stacks
+
+
+def planned_files(
+    profile: str,
+    agents: str,
+    features: set[str],
+    stacks: set[str] | None = None,
+) -> list[str]:
     if profile == "minimal":
         files = set(MINIMAL_FILES)
     elif profile == "standard":
@@ -88,6 +113,11 @@ def planned_files(profile: str, agents: str, features: set[str]) -> list[str]:
 
     for feature in features:
         files.update(FEATURE_FILES[feature])
+
+    for stack in stacks or set():
+        if stack not in STACK_FILES:
+            raise ValueError(f"unsupported scaffold stack: {stack}")
+        files.update(STACK_FILES[stack])
 
     if agents in {"claude", "both"}:
         files.update(CLAUDE_BASE_FILES)
@@ -129,6 +159,11 @@ def build_parser() -> argparse.ArgumentParser:
         default="",
         help="Comma-separated optional concerns: api,context,data,migration,operations,security",
     )
+    parser.add_argument(
+        "--stacks",
+        default="",
+        help="Comma-separated stack-specific scaffold assets: sqlserver",
+    )
     parser.add_argument("--summary", default="TBD — replace with the confirmed project outcome.")
     parser.add_argument("--dry-run", action="store_true")
     overwrite = parser.add_mutually_exclusive_group()
@@ -142,7 +177,8 @@ def main() -> int:
     try:
         target = validate_target(args.target)
         features = parse_features(args.features)
-        files = planned_files(args.profile, args.agents, features)
+        stacks = parse_stacks(args.stacks)
+        files = planned_files(args.profile, args.agents, features, stacks)
     except ValueError as exc:
         print(f"ERROR: {exc}", file=sys.stderr)
         return 2
@@ -163,7 +199,11 @@ def main() -> int:
 
     action = "PLAN" if args.dry_run else "CREATE"
     print(f"{action}: {target}")
-    print(f"profile={args.profile} agents={args.agents} features={','.join(sorted(features)) or 'none'}")
+    print(
+        f"profile={args.profile} agents={args.agents} "
+        f"features={','.join(sorted(features)) or 'none'} "
+        f"stacks={','.join(sorted(stacks)) or 'none'}"
+    )
     for path in files:
         if path in conflicts and args.merge:
             print(f"PRESERVE {path}")

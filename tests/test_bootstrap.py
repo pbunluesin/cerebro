@@ -50,10 +50,12 @@ class BootstrapProjectTests(unittest.TestCase):
             self.assertTrue((target / "AGENTS.md").is_file())
             self.assertTrue((target / "CLAUDE.md").is_file())
             self.assertTrue((target / ".claude/rules/guardrails.md").is_file())
+            self.assertTrue((target / ".cerebro/stack-profile.json").is_file())
             self.assertFalse((target / ".claude/agents").exists())
             self.assertFalse((target / ".claude/rules/docs-routing.md").exists())
             self.assertFalse((target / "PROCESS.md").exists())
             self.assertFalse((target / "docs/DATA.md").exists())
+            self.assertFalse((target / "database/templates/sqlserver").exists())
 
             agents_text = (target / "AGENTS.md").read_text(encoding="utf-8")
             for marker in (
@@ -100,6 +102,7 @@ class BootstrapProjectTests(unittest.TestCase):
             architecture = (target / "docs/ARCHITECTURE.md").read_text(encoding="utf-8")
             self.assertIn("Modules, interfaces, and responsibilities", architecture)
             self.assertIn("Seam/adapter rationale", architecture)
+            self.assertIn("Approved references", architecture)
             decision = (target / "docs/decisions/0000-template.md").read_text(encoding="utf-8")
             self.assertIn("Decision and rationale", decision)
             self.assertIn("genuine alternatives existed", decision)
@@ -125,6 +128,92 @@ class BootstrapProjectTests(unittest.TestCase):
             review_contract = (target / "docs/quality/REVIEW_CONTRACT.md").read_text(encoding="utf-8")
             self.assertIn("latest currently approved Codex model", review_contract)
             self.assertIn("No silent fallback", review_contract)
+
+    def test_sqlserver_stack_adds_team_standard_templates_only_when_selected(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary:
+            target = Path(temporary) / "sqlserver"
+            result = self.run_tool(
+                BOOTSTRAP,
+                "--target", str(target),
+                "--name", "SQL Server Service",
+                "--profile", "standard",
+                "--agents", "both",
+                "--stacks", "sqlserver",
+            )
+            self.assertEqual(result.returncode, 0, result.stderr)
+            self.assertTrue((target / "docs/DATA.md").is_file())
+
+            template_root = target / "database/templates/sqlserver"
+            expected = {
+                "stored-procedure-get.sql",
+                "stored-procedure-insert.sql",
+                "stored-procedure-update.sql",
+                "stored-procedure-delete.sql",
+                "stored-procedure-write-transaction.sql",
+            }
+            self.assertEqual(
+                {path.name for path in template_root.glob("*.sql")},
+                expected,
+            )
+
+            get_sql = (template_root / "stored-procedure-get.sql").read_text(
+                encoding="utf-8"
+            )
+            self.assertIn(
+                "SET TRANSACTION ISOLATION LEVEL READ UNCOMMITTED;", get_sql
+            )
+            self.assertNotIn("BEGIN TRAN;", get_sql)
+            self.assertNotIn("```", get_sql)
+            self.assertNotIn("# template", get_sql)
+            self.assertIn("CREATE PROC ", get_sql)
+            self.assertTrue(get_sql.rstrip().endswith("GO"))
+
+            for name in expected - {"stored-procedure-get.sql"}:
+                sql = (template_root / name).read_text(encoding="utf-8")
+                for marker in (
+                    "SET XACT_ABORT ON;",
+                    "BEGIN TRY",
+                    "BEGIN TRAN;",
+                    "COMMIT TRAN;",
+                    "XACT_STATE()",
+                    "ROLLBACK TRAN;",
+                    "THROW;",
+                    "EXEC_TEST",
+                ):
+                    self.assertIn(marker, sql, f"{name}: {marker}")
+                self.assertNotIn("```", sql)
+                self.assertNotIn("# template", sql)
+
+            insert_sql = (
+                template_root / "stored-procedure-insert.sql"
+            ).read_text(encoding="utf-8")
+            self.assertIn("IF NOT EXISTS", insert_sql)
+            self.assertIn("RAISERROR", insert_sql)
+
+            validation = self.run_tool(
+                VALIDATE,
+                "--target", str(target),
+                "--profile", "standard",
+                "--agents", "both",
+                "--stacks", "sqlserver",
+                "--allow-draft",
+            )
+            self.assertEqual(validation.returncode, 0, validation.stderr)
+
+    def test_unknown_scaffold_stack_fails_closed(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary:
+            target = Path(temporary) / "unknown"
+            result = self.run_tool(
+                BOOTSTRAP,
+                "--target", str(target),
+                "--name", "Unknown",
+                "--profile", "minimal",
+                "--agents", "codex",
+                "--stacks", "mysql",
+            )
+            self.assertEqual(result.returncode, 2)
+            self.assertIn("unknown scaffold stacks: mysql", result.stderr)
+            self.assertFalse(target.exists())
 
     def test_conflict_requires_merge_or_force(self) -> None:
         with tempfile.TemporaryDirectory() as temporary:

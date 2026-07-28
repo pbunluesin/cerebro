@@ -53,6 +53,20 @@ Serve as the current continuation point. Keep:
 
 Remove completed narration that Git history or durable docs already preserve. Never turn this into a process manual.
 
+### `.cerebro/stack-profile.json`
+
+Serve as the generated, machine-readable record of:
+
+- exact runtime, framework, database versions, and path scopes;
+- approved official scaffold, documentation, and example references;
+- Stack Pack versions and content hashes;
+- selected Good/Bad rule IDs and explicit exceptions;
+- the human approval checkpoint for reference selection.
+
+Keep it versioned with the project. Do not hand-edit selected rules or copy the
+complete Cerebro packs into the project. Regenerate it through
+`select_stack_rules.py` after an approved version, path, or pack change.
+
 ### `.env.example`
 
 List safe variable names and non-secret examples. Document ownership and purpose. Never include live credentials, production hosts with embedded authentication, private keys, or copied secret values.
@@ -138,6 +152,8 @@ For critical projects, record pre-deploy evidence, approvals, migration and roll
 | Interface contract | `API.md`, contract tests, review contract |
 | Security or privacy behavior | `SECURITY.md`, threat model, tests |
 | Deployment, monitoring, recovery | `OPERATIONS.md` |
+| Stack version, approved reference, rule, or path scope | `.cerebro/stack-profile.json`, then affected architecture/tests |
+| SQL Server stored procedure team policy | Installed `sqlserver-house-standard.md`; project profile stores its version/hash and procedure object files implement it |
 | Current work only | `PROJECT_STATE.md` |
 | Durable agent rule | `AGENTS.md` or closest nested `AGENTS.md` |
 | Repeatable workflow | Cerebro skill, not generated project docs |
@@ -149,4 +165,7 @@ For critical projects, record pre-deploy evidence, approvals, migration and roll
 - Do not create separate Codex and Claude copies of requirements or architecture.
 - Do not duplicate `AGENTS.md` rules in `CLAUDE.md`.
 - Do not copy issue history into `PROJECT_STATE.md` when findings or Git already preserve it.
+- Do not copy the full SQL Server house standard into project docs or
+  `AGENTS.md`; keep only selected rule IDs/profile metadata and project-specific
+  exceptions.
 - Do not keep empty documents merely because a template created them.
