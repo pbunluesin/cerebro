@@ -3,12 +3,16 @@ name: Validate Cerebro
 on:
   push:
   pull_request:
+  schedule:
+    - cron: "17 2 * * *"
+  workflow_dispatch:
 
 permissions:
   contents: read
 
 jobs:
   validate:
+    if: github.event_name != 'schedule'
     runs-on: ubuntu-latest
     strategy:
       matrix:
@@ -22,3 +26,27 @@ jobs:
         run: python3 scripts/validate_all.py
       - name: Run behavior tests
         run: python3 -m unittest discover -s tests -p 'test_*.py' -v
+      - name: Validate shell syntax
+        run: python3 scripts/validate_shell.py
+
+  stack-freshness:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Enforce Stack Pack review deadlines
+        run: python3 skills/create-project/scripts/check_stack_pack_status.py
+
+  claude-plugin:
+    if: github.event_name != 'schedule'
+    runs-on: ubuntu-latest
+    env:
+      DISABLE_AUTOUPDATER: "1"
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install pinned Claude Code validator
+        run: |
+          curl -fsSL https://claude.ai/install.sh --output /tmp/install-claude.sh
+          bash /tmp/install-claude.sh 2.1.210
+      - name: Validate Claude plugin strictly
+        run: |
+          "$HOME/.local/bin/claude" plugin validate . --strict

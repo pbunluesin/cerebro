@@ -6,6 +6,7 @@ from __future__ import annotations
 import argparse
 import hashlib
 import json
+import os
 import re
 from collections import defaultdict
 from pathlib import Path
@@ -29,20 +30,54 @@ DOC_NAMES = {
     "OPERATIONS.md",
     "MIGRATION.md",
 }
-TOKEN_RE = re.compile(r"\{\{[A-Z0-9_]+\}\}|\[TODO(?::[^\]]*)?\]", re.IGNORECASE)
-IGNORED_DIRS = {
-    ".git",
-    ".mypy_cache",
-    ".pytest_cache",
-    ".ruff_cache",
-    ".venv",
-    "__pycache__",
-    "build",
-    "dist",
-    "node_modules",
-    "target",
-    "vendor",
-}
+TOKEN_RE = re.compile(
+    r"\{\{[A-Z0-9_]+\}\}|\[TODO(?::[^\]]*)?\]|\bTBD\b(?!-NONBLOCKING)",
+    re.IGNORECASE,
+)
+SCRIPT_DIR = Path(__file__).resolve().parent
+SCAN_POLICY = (
+    SCRIPT_DIR.parents[1]
+    / "create-project"
+    / "references"
+    / "project-scan-policy.json"
+)
+
+
+def ignored_directories() -> set[str]:
+    try:
+        policy = json.loads(SCAN_POLICY.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError) as exc:
+        raise ValueError(f"cannot load shared project scan policy: {exc}") from exc
+    values = policy.get("ignored_directories")
+    if (
+        policy.get("schema_version") != 1
+        or not isinstance(values, list)
+        or not values
+        or not all(isinstance(item, str) and item for item in values)
+    ):
+        raise ValueError("shared project scan policy is malformed")
+    return set(values)
+
+
+def inventory_files(root: Path) -> list[Path]:
+    ignored = ignored_directories()
+    files: list[Path] = []
+    for directory, names, filenames in os.walk(
+        root,
+        topdown=True,
+        followlinks=False,
+    ):
+        current = Path(directory)
+        names[:] = [
+            name
+            for name in names
+            if name not in ignored and not (current / name).is_symlink()
+        ]
+        for name in filenames:
+            path = current / name
+            if name != ".DS_Store" and not path.is_symlink():
+                files.append(path)
+    return sorted(files)
 
 
 def digest(path: Path) -> str:
@@ -63,13 +98,10 @@ def main() -> int:
     if not root.is_dir():
         parser.error(f"target is not a directory: {root}")
 
-    files = sorted(
-        path
-        for path in root.rglob("*")
-        if path.is_file()
-        and not any(part in IGNORED_DIRS for part in path.relative_to(root).parts)
-        and path.name != ".DS_Store"
-    )
+    try:
+        files = inventory_files(root)
+    except ValueError as exc:
+        parser.error(str(exc))
     by_hash: dict[str, list[str]] = defaultdict(list)
     unresolved: list[str] = []
     for path in files:

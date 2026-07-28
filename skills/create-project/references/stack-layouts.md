@@ -106,16 +106,18 @@ initializer owns the database project:
 database/
 ├── <database-project>/           # initializer-owned .sqlproj and object sources
 ├── templates/
-│   └── sqlserver/                # DBHS-01 procedure starter templates
+│   └── sqlserver/                # DBHS-01/02 object starter templates
 └── tests/                        # only confirmed object/contract/integration tests
 ```
 
 Use one declarative source file per real database object and let the selected
 SQL project conventions determine schema/object subfolders. Move a populated
-procedure from `templates/sqlserver/` into the initializer-owned source tree;
-do not treat the starter file as a second deployed definition. Do not create
-functions, triggers, types, or their folders until requirements and their
-house naming standards are confirmed.
+object from `templates/sqlserver/` into the initializer-owned source tree; do
+not treat the starter file as a second deployed definition. Create only
+confirmed procedures/functions/triggers/types after the applicable DBHS input
+gate is complete. Apply DBEP-01 to design, normalization, index, and
+optimization decisions with exact-target/workload evidence; do not create
+object folders merely because a starter template exists.
 
 ### Infrastructure repository
 

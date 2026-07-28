@@ -3,13 +3,13 @@
   "packs": {
     "best_practices": {
       "file": "best-practices.md",
-      "version": "2.1.0",
-      "sha256": "006da473c16f6be238450a4317f4c5ce281b24d8647c867c17a5d759985ba0d1"
+      "version": "2.2.0",
+      "sha256": "288a3322695b1bb0160047223890d8d675a21e8b8272838cd36811d53259976d"
     },
     "anti_pattern_guardrails": {
       "file": "anti-patterns.md",
-      "version": "2.1.0",
-      "sha256": "b9c9294097a0530214662e87534b3889bee3f08d3593e0acdf7fd66f6ee468d6"
+      "version": "2.2.0",
+      "sha256": "dfcf0c59d4da4d2fee07aa8156e9e93f6cb90acc1dc6fd2233035674f16727e9"
     }
   },
   "version_policy": {
@@ -142,11 +142,11 @@
   },
   "source_catalog": {
     "file": "official-sources.json",
-    "version": "1.1.0",
+    "version": "1.2.0",
     "verified_at": "2026-07-28",
     "next_light_review_at": "2026-08-28",
     "next_full_review_at": "2026-10-28",
-    "sha256": "747436322522a7fe85a7936fa83af26f48f4e200457d37c0ed1d8725d05306b5",
+    "sha256": "33ba98f07943e39e71f863e3b4c3d803bf5a5bb5f1414ea5d8f84921ed98f3cd",
     "house_standards": {
       "sqlserver": [
         {
@@ -158,13 +158,37 @@
           "path": "stack-packs/sqlserver-house-standard.md",
           "sha256": "0dd0cd47b81042ad9993918608b0dc7a5da24e9f147547ac4791c0e2ee7dcdba",
           "next_review_at": "2026-10-28"
+        },
+        {
+          "id": "DBHS-02",
+          "display_name": "SQL Server Function, Trigger, and Type Team House Standard",
+          "version": "1.0.0",
+          "status": "approved",
+          "scope": "functions-triggers-types",
+          "path": "stack-packs/sqlserver-object-house-standard.md",
+          "sha256": "952fc90544121b1f710e441bb9abc8e0d6239d913344964872408ff3b54a387f",
+          "next_review_at": "2026-10-28"
+        }
+      ]
+    },
+    "engineering_guides": {
+      "sqlserver": [
+        {
+          "id": "DBEP-01",
+          "display_name": "SQL Server Database Engineering Practices",
+          "version": "1.0.0",
+          "status": "approved",
+          "scope": "design-normalization-indexes-optimization",
+          "path": "stack-packs/sqlserver-engineering-practices.md",
+          "sha256": "885d63437e001a4a3244764ce1f95ec3ee27f795e871f363e7a502865d36345f",
+          "next_review_at": "2026-10-28"
         }
       ]
     }
   },
   "counts": {
-    "rules_total": 289,
-    "exact_pairs": 137,
+    "rules_total": 326,
+    "exact_pairs": 174,
     "related_pairs": 8,
     "ap_only": 106,
     "bp_only": 38
@@ -5614,6 +5638,151 @@
       }
     },
     {
+      "id": "MSSQL-DESIGN-CONSTRAINT-001",
+      "scope": "sqlserver",
+      "pairing": "exact",
+      "applicability": {
+        "scope": "sqlserver",
+        "version_bound": false
+      },
+      "bp": {
+        "level": "MUST",
+        "class": "invariant",
+        "rule": "Enforce durable deterministic integrity with trusted `PRIMARY KEY`, `UNIQUE`, `FOREIGN KEY`, and `CHECK` constraints where SQL Server owns the data; application pre-checks are not concurrency guarantees."
+      },
+      "ap": {
+        "level": "MUST_NOT",
+        "class": "invariant",
+        "pattern": "Enforcing durable uniqueness/referential/domain integrity only with application/trigger pre-checks or leaving constraints disabled/untrusted",
+        "remediation": "Use and deployment-validate trusted PK/UNIQUE/FK/CHECK constraints",
+        "sources": [
+          "DBEP-01",
+          "MSSQL-11",
+          "MSSQL-20"
+        ]
+      }
+    },
+    {
+      "id": "MSSQL-DESIGN-DENORM-001",
+      "scope": "sqlserver",
+      "pairing": "exact",
+      "applicability": {
+        "scope": "sqlserver",
+        "version_bound": false
+      },
+      "bp": {
+        "level": "MUST",
+        "class": "context-sensitive",
+        "rule": "Denormalize only with a measured read benefit plus named duplicated facts, authoritative source, consistency window, update/reconciliation mechanism, failure recovery, and tests."
+      },
+      "ap": {
+        "level": "MUST_NOT",
+        "class": "context-sensitive",
+        "pattern": "Denormalizing merely to avoid joins or duplicating facts without measured benefit, source ownership, consistency window, reconciliation, recovery, and tests",
+        "remediation": "Record and verify the full denormalization contract",
+        "sources": [
+          "DBEP-01",
+          "MSSQL-21"
+        ]
+      }
+    },
+    {
+      "id": "MSSQL-DESIGN-KEY-001",
+      "scope": "sqlserver",
+      "pairing": "exact",
+      "applicability": {
+        "scope": "sqlserver",
+        "version_bound": false
+      },
+      "bp": {
+        "level": "MUST",
+        "class": "invariant",
+        "rule": "Give persisted entities stable candidate/primary keys, preserve real candidate-key uniqueness when using surrogate keys, and enforce confirmed relationships with intentional foreign-key actions."
+      },
+      "ap": {
+        "level": "MUST_NOT",
+        "class": "invariant",
+        "pattern": "Persisting an entity without stable candidate/primary keys, losing natural candidate uniqueness behind a surrogate, or leaving confirmed relationships/actions unenforced",
+        "remediation": "Define PK/UNIQUE/FK contracts and intentional update/delete behavior",
+        "sources": [
+          "DBEP-01",
+          "MSSQL-20"
+        ]
+      }
+    },
+    {
+      "id": "MSSQL-DESIGN-MODEL-001",
+      "scope": "sqlserver",
+      "pairing": "exact",
+      "applicability": {
+        "scope": "sqlserver",
+        "version_bound": false
+      },
+      "bp": {
+        "level": "MUST",
+        "class": "project-policy",
+        "rule": "Model entity ownership, identifiers, lifecycle, authoritative facts, null/default semantics, retention, reconciliation, and migration before choosing tables or generic storage shapes."
+      },
+      "ap": {
+        "level": "MUST_NOT",
+        "class": "project-policy",
+        "pattern": "Choosing tables/EAV/JSON/generic columns before confirming entity ownership, identifiers, authoritative facts, lifecycle, null/default, retention, reconciliation, and migration semantics",
+        "remediation": "Model the data contract and ownership before physical shape",
+        "sources": [
+          "DBEP-01",
+          "MSSQL-20"
+        ]
+      }
+    },
+    {
+      "id": "MSSQL-DESIGN-NORMAL-001",
+      "scope": "sqlserver",
+      "pairing": "exact",
+      "applicability": {
+        "scope": "sqlserver",
+        "version_bound": false
+      },
+      "bp": {
+        "level": "SHOULD",
+        "class": "project-policy",
+        "rule": "Use 1NF/2NF/3NF as the default transactional relational design checkpoint while respecting real bounded-context ownership and genuine document/value semantics."
+      },
+      "ap": {
+        "level": "SHOULD_NOT",
+        "class": "project-policy",
+        "pattern": "Designing transactional relational tables with repeating groups, partial-key dependencies, or transitive fact duplication without a bounded-context/document-semantic rationale",
+        "remediation": "Use 1NF/2NF/3NF as the default checkpoint and record justified exceptions",
+        "sources": [
+          "DBEP-01",
+          "MSSQL-21"
+        ]
+      }
+    },
+    {
+      "id": "MSSQL-DESIGN-TYPE-001",
+      "scope": "sqlserver",
+      "pairing": "exact",
+      "applicability": {
+        "scope": "sqlserver",
+        "version_bound": false
+      },
+      "bp": {
+        "level": "MUST",
+        "class": "invariant",
+        "rule": "Choose explicit narrow-enough SQL types, lengths, precision/scale, Unicode/timezone/nullability semantics, and align parameter/column types to prevent truncation, invalid values, and harmful implicit conversion."
+      },
+      "ap": {
+        "level": "MUST_NOT",
+        "class": "invariant",
+        "pattern": "Using guessed/wasteful/ambiguous types, omitted length/precision/scale/timezone/null semantics, or mismatched parameter/column types that truncate or convert implicitly",
+        "remediation": "Select explicit domain-fit types and verify boundaries plus access paths",
+        "sources": [
+          "DBEP-01",
+          "MSSQL-25"
+        ]
+      }
+    },
+    {
       "id": "MSSQL-DYNAMIC-001",
       "scope": "sqlserver",
       "pairing": "exact",
@@ -5728,6 +5897,54 @@
         "sources": [
           "DBHS-01",
           "MSSQL-01"
+        ]
+      }
+    },
+    {
+      "id": "MSSQL-HOUSE-FUNCTION-001",
+      "scope": "sqlserver",
+      "pairing": "exact",
+      "applicability": {
+        "scope": "sqlserver",
+        "version_bound": false
+      },
+      "bp": {
+        "level": "MUST",
+        "class": "project-policy",
+        "rule": "Select scalar/iTVF/MSTVF/CLR function kind explicitly; declare complete parameter/return/NULL/error/determinism/permission contracts and create no unconfirmed side effects or hidden cross-domain access."
+      },
+      "ap": {
+        "level": "MUST_NOT",
+        "class": "project-policy",
+        "pattern": "Creating a function without explicit kind, parameter/return/NULL/error/determinism/permission contract, or hiding side effects/cross-domain access",
+        "remediation": "Select and document the function contract and simplest valid relational form",
+        "sources": [
+          "DBHS-02",
+          "MSSQL-14"
+        ]
+      }
+    },
+    {
+      "id": "MSSQL-HOUSE-FUNCTION-PLAN-001",
+      "scope": "sqlserver",
+      "pairing": "exact",
+      "applicability": {
+        "scope": "sqlserver",
+        "version_bound": false
+      },
+      "bp": {
+        "level": "MUST",
+        "class": "context-sensitive",
+        "rule": "Verify representative caller plans for every material function; for scalar UDFs record inlining eligibility and actual inlining/parallelism behavior, comparing an inline expression/iTVF/join when row-by-row cost is material."
+      },
+      "ap": {
+        "level": "MUST_NOT",
+        "class": "context-sensitive",
+        "pattern": "Approving a material function without caller-plan evidence or assuming scalar UDF inlining from version/`is_inlineable` alone",
+        "remediation": "Verify actual inlining, parallelism, row-path cost, and an inline/iTVF/join alternative",
+        "sources": [
+          "DBHS-02",
+          "MSSQL-15"
         ]
       }
     },
@@ -5897,6 +6114,98 @@
       }
     },
     {
+      "id": "MSSQL-HOUSE-OBJECT-EXCEPTION-001",
+      "scope": "sqlserver",
+      "pairing": "exact",
+      "applicability": {
+        "scope": "sqlserver",
+        "version_bound": false
+      },
+      "bp": {
+        "level": "MUST",
+        "class": "project-policy",
+        "rule": "Record every DBHS-02 deviation with exact rule/path/object/version, owner, reason, dependency impact, evidence, expiry/review trigger, and reversal path."
+      },
+      "ap": {
+        "level": "MUST_NOT",
+        "class": "project-policy",
+        "pattern": "Silently deviating from DBHS-02 or using a broad permanent waiver without object/version/path/owner/evidence/review/reversal",
+        "remediation": "Record a narrow complete exception and regenerate the project profile",
+        "sources": [
+          "DBHS-02"
+        ]
+      }
+    },
+    {
+      "id": "MSSQL-HOUSE-OBJECT-HEADER-001",
+      "scope": "sqlserver",
+      "pairing": "exact",
+      "applicability": {
+        "scope": "sqlserver",
+        "version_bound": false
+      },
+      "bp": {
+        "level": "MUST",
+        "class": "project-policy",
+        "rule": "Start every function, trigger, and type source with the team Author/DateTime/Comment table, safe commented object-specific test, and business purpose; source comments are not assumed to become persistent SQL metadata."
+      },
+      "ap": {
+        "level": "MUST_NOT",
+        "class": "project-policy",
+        "pattern": "Omitting Author/DateTime/Comment, safe object test, or purpose from function/trigger/type source, guessing the author, or assuming the comment persists as SQL metadata",
+        "remediation": "Complete the source header from confirmed evidence and add extended properties only under a separate contract",
+        "sources": [
+          "DBHS-02"
+        ]
+      }
+    },
+    {
+      "id": "MSSQL-HOUSE-OBJECT-NAME-001",
+      "scope": "sqlserver",
+      "pairing": "exact",
+      "applicability": {
+        "scope": "sqlserver",
+        "version_bound": false
+      },
+      "bp": {
+        "level": "MUST",
+        "class": "project-policy",
+        "rule": "Name functions, triggers, and types with a confirmed lowercase `snake_case` semantic stem ending `_v<version>`; use the object-specific DBHS-02 token shape and never invent an unapproved abbreviation prefix."
+      },
+      "ap": {
+        "level": "MUST_NOT",
+        "class": "project-policy",
+        "pattern": "Naming a function, trigger, or type outside the confirmed DBHS-02 lowercase `snake_case` semantic shape ending `_vN`, or inventing `fn_`/`tr_`/`tt_` prefixes",
+        "remediation": "Confirm semantic tokens and use the DBHS-02 object-specific shape",
+        "sources": [
+          "DBHS-02"
+        ]
+      }
+    },
+    {
+      "id": "MSSQL-HOUSE-OBJECT-VERIFY-001",
+      "scope": "sqlserver",
+      "pairing": "exact",
+      "applicability": {
+        "scope": "sqlserver",
+        "version_bound": false
+      },
+      "bp": {
+        "level": "MUST",
+        "class": "project-policy",
+        "rule": "Do not complete a function/trigger/type until exact-target build, contract, dependency, permission, representative-plan/workload, deployment, recovery, and real-driver checks record results."
+      },
+      "ap": {
+        "level": "MUST_NOT",
+        "class": "project-policy",
+        "pattern": "Declaring a function/trigger/type complete from generated DDL or visual review alone",
+        "remediation": "Record exact-target build, contract, dependency, permission, workload/plan, deployment, recovery, and driver evidence",
+        "sources": [
+          "DBHS-02"
+        ]
+      }
+    },
+    {
       "id": "MSSQL-HOUSE-PARAM-001",
       "scope": "sqlserver",
       "pairing": "exact",
@@ -5941,6 +6250,104 @@
         "sources": [
           "DBHS-01",
           "MSSQL-13"
+        ]
+      }
+    },
+    {
+      "id": "MSSQL-HOUSE-TRIGGER-OBJECT-001",
+      "scope": "sqlserver",
+      "pairing": "exact",
+      "applicability": {
+        "scope": "sqlserver",
+        "version_bound": false
+      },
+      "bp": {
+        "level": "MUST",
+        "class": "project-policy",
+        "rule": "Justify every trigger over a visible constraint/procedure/application/job/event mechanism; define target/event/timing/scope/execution context and implement zero/one/many-row set-based behavior with `NOCOUNT`, bounded side effects, and no independent transaction."
+      },
+      "ap": {
+        "level": "MUST_NOT",
+        "class": "project-policy",
+        "pattern": "Adding a trigger without justification/target/event/timing/scope/context, or writing scalar/cursor/per-row logic, independent transactions, unbounded/external side effects, or one-row assumptions",
+        "remediation": "Use the DBHS-02 set-based bounded trigger contract and test zero/one/many rows plus failures",
+        "sources": [
+          "DBHS-02",
+          "MSSQL-07",
+          "MSSQL-16"
+        ]
+      }
+    },
+    {
+      "id": "MSSQL-HOUSE-TRIGGER-VERSION-001",
+      "scope": "sqlserver",
+      "pairing": "exact",
+      "applicability": {
+        "scope": "sqlserver",
+        "version_bound": false
+      },
+      "bp": {
+        "level": "MUST",
+        "class": "migration-risk",
+        "rule": "Keep exactly one active version for the same trigger target/event behavior and transition versions with one reviewed enable/disable/drop plan that prevents duplicate side effects and includes recovery."
+      },
+      "ap": {
+        "level": "MUST_NOT",
+        "class": "migration-risk",
+        "pattern": "Leaving old and new trigger versions active for the same target/event or deploying a transition without duplicate-side-effect and recovery evidence",
+        "remediation": "Use one reviewed enable/disable/drop plan with exactly one active behavior owner",
+        "sources": [
+          "DBHS-02",
+          "MSSQL-16"
+        ]
+      }
+    },
+    {
+      "id": "MSSQL-HOUSE-TYPE-OBJECT-001",
+      "scope": "sqlserver",
+      "pairing": "exact",
+      "applicability": {
+        "scope": "sqlserver",
+        "version_bound": false
+      },
+      "bp": {
+        "level": "MUST",
+        "class": "project-policy",
+        "rule": "Define every type's exact shape, constraints, nullability/collation, permissions, row-count/client contract, and type kind; for TVPs account for `READONLY` and absent column statistics."
+      },
+      "ap": {
+        "level": "MUST_NOT",
+        "class": "project-policy",
+        "pattern": "Creating a type without exact shape/constraints/nullability/collation/permissions/row-count/client contract or ignoring TVP `READONLY`/statistics behavior",
+        "remediation": "Define and verify the complete DBHS-02 type contract",
+        "sources": [
+          "DBHS-02",
+          "MSSQL-05",
+          "MSSQL-17"
+        ]
+      }
+    },
+    {
+      "id": "MSSQL-HOUSE-TYPE-VERSION-001",
+      "scope": "sqlserver",
+      "pairing": "exact",
+      "applicability": {
+        "scope": "sqlserver",
+        "version_bound": false
+      },
+      "bp": {
+        "level": "MUST",
+        "class": "migration-risk",
+        "rule": "Version user-defined types through create-new, dependency migration, compatibility verification, and approved old-type removal; never drop/recreate a referenced type merely to make deployment pass."
+      },
+      "ap": {
+        "level": "MUST_NOT",
+        "class": "migration-risk",
+        "pattern": "Dropping/recreating a referenced type or removing an old version before every procedure/function/client/permission dependency migrates",
+        "remediation": "Create a new version, migrate dependents, verify compatibility, then obtain destructive approval for removal",
+        "sources": [
+          "DBHS-02",
+          "MSSQL-17"
         ]
       }
     },
@@ -6016,6 +6423,272 @@
       }
     },
     {
+      "id": "MSSQL-INDEX-EVIDENCE-001",
+      "scope": "sqlserver",
+      "pairing": "exact",
+      "applicability": {
+        "scope": "sqlserver",
+        "version_bound": false
+      },
+      "bp": {
+        "level": "MUST",
+        "class": "context-sensitive",
+        "rule": "Design or remove indexes only from representative predicates/joins/order/group/projection plus before/after plans, runtime, DML, storage, and concurrency evidence."
+      },
+      "ap": {
+        "level": "MUST_NOT",
+        "class": "context-sensitive",
+        "pattern": "Creating/removing an index without representative workload, before/after plan/runtime, DML/storage, and concurrency evidence",
+        "remediation": "Tie index DDL to measured queries and acceptance/rollback thresholds",
+        "sources": [
+          "DBEP-01",
+          "MSSQL-18"
+        ]
+      }
+    },
+    {
+      "id": "MSSQL-INDEX-FAMILY-001",
+      "scope": "sqlserver",
+      "pairing": "exact",
+      "applicability": {
+        "scope": "sqlserver",
+        "version_bound": false
+      },
+      "bp": {
+        "level": "MUST",
+        "class": "context-sensitive",
+        "rule": "Choose clustered/nonclustered/columnstore/filtered/full-text/XML/spatial/memory-optimized/partitioned design from the confirmed workload, target support, and operational model."
+      },
+      "ap": {
+        "level": "MUST_NOT",
+        "class": "context-sensitive",
+        "pattern": "Selecting clustered/columnstore/partitioned/specialized indexes by convention rather than workload semantics and exact target support",
+        "remediation": "Choose the index family from measured OLTP/analytic/value/operations needs",
+        "sources": [
+          "DBEP-01",
+          "MSSQL-18"
+        ]
+      }
+    },
+    {
+      "id": "MSSQL-INDEX-FILL-001",
+      "scope": "sqlserver",
+      "pairing": "exact",
+      "applicability": {
+        "scope": "sqlserver",
+        "version_bound": false
+      },
+      "bp": {
+        "level": "SHOULD",
+        "class": "context-sensitive",
+        "rule": "Keep fill factor `100`/`0` unless measured page splits justify lower page density and its I/O/storage trade-off."
+      },
+      "ap": {
+        "level": "SHOULD_NOT",
+        "class": "context-sensitive",
+        "pattern": "Setting fill factor below `100`/`0` by habit or global script without measured page-split benefit",
+        "remediation": "Keep default density or record index-specific split/I/O/storage evidence",
+        "sources": [
+          "DBEP-01",
+          "MSSQL-19"
+        ]
+      }
+    },
+    {
+      "id": "MSSQL-INDEX-FILTER-001",
+      "scope": "sqlserver",
+      "pairing": "exact",
+      "applicability": {
+        "scope": "sqlserver",
+        "version_bound": false
+      },
+      "bp": {
+        "level": "SHOULD",
+        "class": "context-sensitive",
+        "rule": "Use a filtered index only for a stable selective subset whose predicate and included/key columns fit material queries."
+      },
+      "ap": {
+        "level": "SHOULD_NOT",
+        "class": "context-sensitive",
+        "pattern": "Adding a filtered index whose subset is unstable or doesn't match material predicate/key/include needs",
+        "remediation": "Prove selectivity, predicate compatibility, coverage, and workload benefit",
+        "sources": [
+          "DBEP-01",
+          "MSSQL-18"
+        ]
+      }
+    },
+    {
+      "id": "MSSQL-INDEX-INCLUDE-001",
+      "scope": "sqlserver",
+      "pairing": "exact",
+      "applicability": {
+        "scope": "sqlserver",
+        "version_bound": false
+      },
+      "bp": {
+        "level": "SHOULD",
+        "class": "context-sensitive",
+        "rule": "Use a small justified `INCLUDE` projection only when covering benefit exceeds reduced page density, cache efficiency, storage, and DML cost."
+      },
+      "ap": {
+        "level": "SHOULD_NOT",
+        "class": "context-sensitive",
+        "pattern": "Building “cover everything” indexes or adding wide/LOB include columns without proving benefit exceeds page/cache/storage/DML cost",
+        "remediation": "Keep a small justified INCLUDE projection and verify",
+        "sources": [
+          "DBEP-01",
+          "MSSQL-18"
+        ]
+      }
+    },
+    {
+      "id": "MSSQL-INDEX-KEY-001",
+      "scope": "sqlserver",
+      "pairing": "exact",
+      "applicability": {
+        "scope": "sqlserver",
+        "version_bound": false
+      },
+      "bp": {
+        "level": "SHOULD",
+        "class": "context-sensitive",
+        "rule": "Order narrow key columns from real equality/range/join/order patterns and data distribution rather than a blanket “most selective first” formula."
+      },
+      "ap": {
+        "level": "SHOULD_NOT",
+        "class": "context-sensitive",
+        "pattern": "Ordering index keys by a blanket “most selective first” rule without equality/range/join/order and data-distribution evidence",
+        "remediation": "Choose narrow key order from real access patterns",
+        "sources": [
+          "DBEP-01",
+          "MSSQL-18"
+        ]
+      }
+    },
+    {
+      "id": "MSSQL-INDEX-MAINT-001",
+      "scope": "sqlserver",
+      "pairing": "exact",
+      "applicability": {
+        "scope": "sqlserver",
+        "version_bound": false
+      },
+      "bp": {
+        "level": "MUST",
+        "class": "context-sensitive",
+        "rule": "Base reorganize/rebuild/statistics maintenance on correlated workload degradation, page density, fragmentation, size, resource/HA/log impact, and measured before/after benefit—not fixed thresholds or schedules."
+      },
+      "ap": {
+        "level": "MUST_NOT",
+        "class": "context-sensitive",
+        "pattern": "Rebuilding/reorganizing all indexes on fixed 5%/30% thresholds or schedules, or attributing statistics-driven improvements to fragmentation without evidence",
+        "remediation": "Correlate workload, density, fragmentation, statistics, cost, and before/after results",
+        "sources": [
+          "DBEP-01",
+          "MSSQL-19",
+          "MSSQL-23"
+        ]
+      }
+    },
+    {
+      "id": "MSSQL-INDEX-MISSING-001",
+      "scope": "sqlserver",
+      "pairing": "exact",
+      "applicability": {
+        "scope": "sqlserver",
+        "version_bound": false
+      },
+      "bp": {
+        "level": "MUST",
+        "class": "context-sensitive",
+        "rule": "Treat missing-index DMVs and tuning-tool output as candidates; compare existing definitions, test full workload/DML impact, and approve explicit DDL before adoption."
+      },
+      "ap": {
+        "level": "MUST_NOT",
+        "class": "context-sensitive",
+        "pattern": "Applying missing-index DMV/tuning output automatically or one recommendation at a time without consolidation/full workload tests",
+        "remediation": "Treat suggestions as candidates and approve reviewed DDL",
+        "sources": [
+          "DBEP-01",
+          "MSSQL-18"
+        ]
+      }
+    },
+    {
+      "id": "MSSQL-INDEX-ONLINE-001",
+      "scope": "sqlserver",
+      "pairing": "exact",
+      "applicability": {
+        "scope": "sqlserver",
+        "version_bound": false
+      },
+      "bp": {
+        "level": "MUST",
+        "class": "migration-risk",
+        "rule": "Choose online/offline/resumable/partition/low-priority/`MAXDOP` maintenance from exact target support, locks, duration, log, tempdb/storage, HA/replica capacity, recovery, and maintenance-window evidence."
+      },
+      "ap": {
+        "level": "MUST_NOT",
+        "class": "migration-risk",
+        "pattern": "Running index maintenance without exact online/resumable support, lock/duration/log/tempdb/storage/HA/replica/resource and recovery review",
+        "remediation": "Plan the operation for target capability and operational headroom",
+        "sources": [
+          "DBEP-01",
+          "MSSQL-19"
+        ]
+      }
+    },
+    {
+      "id": "MSSQL-INDEX-OVER-001",
+      "scope": "sqlserver",
+      "pairing": "exact",
+      "applicability": {
+        "scope": "sqlserver",
+        "version_bound": false
+      },
+      "bp": {
+        "level": "MUST",
+        "class": "context-sensitive",
+        "rule": "Review existing usage/operational statistics and consolidate duplicate or near-duplicate indexes; balance read benefit against write, log, memory, storage, backup, replica, and maintenance cost."
+      },
+      "ap": {
+        "level": "MUST_NOT",
+        "class": "context-sensitive",
+        "pattern": "Adding duplicate/near-duplicate/wide indexes without usage review or ignoring write/log/memory/storage/backup/replica/maintenance cost",
+        "remediation": "Consolidate and retain only indexes with net workload value",
+        "sources": [
+          "DBEP-01",
+          "MSSQL-18"
+        ]
+      }
+    },
+    {
+      "id": "MSSQL-INDEX-UNIQUE-001",
+      "scope": "sqlserver",
+      "pairing": "exact",
+      "applicability": {
+        "scope": "sqlserver",
+        "version_bound": false
+      },
+      "bp": {
+        "level": "MUST",
+        "class": "invariant",
+        "rule": "Use a unique constraint/index for every confirmed uniqueness invariant and verify duplicate/concurrency behavior."
+      },
+      "ap": {
+        "level": "MUST_NOT",
+        "class": "invariant",
+        "pattern": "Relying on check-then-write for a confirmed uniqueness invariant",
+        "remediation": "Enforce it with PK/UNIQUE constraint/index and concurrency tests",
+        "sources": [
+          "DBEP-01",
+          "MSSQL-11",
+          "MSSQL-18"
+        ]
+      }
+    },
+    {
       "id": "MSSQL-NOCOUNT-001",
       "scope": "sqlserver",
       "pairing": "exact",
@@ -6035,6 +6708,248 @@
         "remediation": "Put it first after `AS` or document/test the exceptional consumer contract",
         "sources": [
           "MSSQL-02"
+        ]
+      }
+    },
+    {
+      "id": "MSSQL-OPT-BASELINE-001",
+      "scope": "sqlserver",
+      "pairing": "exact",
+      "applicability": {
+        "scope": "sqlserver",
+        "version_bound": false
+      },
+      "bp": {
+        "level": "MUST",
+        "class": "context-sensitive",
+        "rule": "Capture an SLA-aligned Query Store/actual-plan/runtime/wait/cardinality/concurrency baseline on representative data before optimization and define acceptance plus rollback thresholds."
+      },
+      "ap": {
+        "level": "MUST_NOT",
+        "class": "context-sensitive",
+        "pattern": "Optimizing without SLA, Query Store/plan/runtime/wait/cardinality/concurrency baseline or measurable acceptance/rollback thresholds",
+        "remediation": "Capture representative evidence and optimize the material bottleneck",
+        "sources": [
+          "DBEP-01",
+          "MSSQL-22"
+        ]
+      }
+    },
+    {
+      "id": "MSSQL-OPT-CONFIG-001",
+      "scope": "sqlserver",
+      "pairing": "exact",
+      "applicability": {
+        "scope": "sqlserver",
+        "version_bound": false
+      },
+      "bp": {
+        "level": "MUST",
+        "class": "context-sensitive",
+        "rule": "Treat compatibility level, cardinality estimator, statistics, isolation, MAXDOP, memory, tempdb, compression, automatic tuning, and Intelligent Query Processing as exact version/target/workload decisions."
+      },
+      "ap": {
+        "level": "MUST_NOT",
+        "class": "context-sensitive",
+        "pattern": "Copying compatibility/CE/statistics/isolation/MAXDOP/memory/tempdb/compression/tuning/IQP settings from another workload or version",
+        "remediation": "Resolve exact target and measure a scoped configuration decision with reversal",
+        "sources": [
+          "DBEP-01",
+          "MSSQL-22",
+          "MSSQL-23"
+        ]
+      }
+    },
+    {
+      "id": "MSSQL-OPT-HINT-001",
+      "scope": "sqlserver",
+      "pairing": "exact",
+      "applicability": {
+        "scope": "sqlserver",
+        "version_bound": false
+      },
+      "bp": {
+        "level": "MUST",
+        "class": "context-sensitive",
+        "rule": "Use query/table/join/Query Store hints only as an experienced last resort with exact scope, evidence, owner, expiry/review trigger, regression checks, and removal path."
+      },
+      "ap": {
+        "level": "MUST_NOT",
+        "class": "context-sensitive",
+        "pattern": "Adding query/table/join/Query Store hints as first-line or permanent fixes without owner/evidence/scope/expiry/regression/removal plan",
+        "remediation": "Use experienced last-resort hinting under a reviewed reversible contract",
+        "sources": [
+          "DBEP-01",
+          "MSSQL-24"
+        ]
+      }
+    },
+    {
+      "id": "MSSQL-OPT-PARAM-001",
+      "scope": "sqlserver",
+      "pairing": "exact",
+      "applicability": {
+        "scope": "sqlserver",
+        "version_bound": false
+      },
+      "bp": {
+        "level": "MUST",
+        "class": "context-sensitive",
+        "rule": "Test representative parameter distributions and optional filters against the exact compatibility level; choose branching/recompile/dynamic SQL/PSP/OPPO treatment only from plan evidence."
+      },
+      "ap": {
+        "level": "MUST_NOT",
+        "class": "context-sensitive",
+        "pattern": "Applying one cached-plan/parameter-sniffing remedy to all distributions or using PSP/OPPO/recompile/dynamic SQL without exact compatibility and plan evidence",
+        "remediation": "Test representative parameters and choose the narrowest verified treatment",
+        "sources": [
+          "DBEP-01",
+          "MSSQL-13",
+          "MSSQL-22"
+        ]
+      }
+    },
+    {
+      "id": "MSSQL-OPT-PLAN-001",
+      "scope": "sqlserver",
+      "pairing": "exact",
+      "applicability": {
+        "scope": "sqlserver",
+        "version_bound": false
+      },
+      "bp": {
+        "level": "MUST",
+        "class": "context-sensitive",
+        "rule": "Use actual execution plans and runtime evidence to verify estimates, access paths, lookups, spills, memory grants, parallelism, waits, and regressions; an estimated plan alone is not completion evidence."
+      },
+      "ap": {
+        "level": "MUST_NOT",
+        "class": "context-sensitive",
+        "pattern": "Claiming performance fixed from an estimated plan or elapsed time alone without actual rows, reads/CPU, spills, grants, waits, parallelism, and regression evidence",
+        "remediation": "Capture and compare actual plans plus representative runtime metrics",
+        "sources": [
+          "DBEP-01",
+          "MSSQL-22"
+        ]
+      }
+    },
+    {
+      "id": "MSSQL-OPT-QUERYSTORE-001",
+      "scope": "sqlserver",
+      "pairing": "exact",
+      "applicability": {
+        "scope": "sqlserver",
+        "version_bound": false
+      },
+      "bp": {
+        "level": "SHOULD",
+        "class": "project-policy",
+        "rule": "Enable and workload-tune Query Store for SQL Server 2022+ databases unless a documented target/operations constraint prevents it; monitor capture policy, retention, size, and read-write health."
+      },
+      "ap": {
+        "level": "SHOULD_NOT",
+        "class": "project-policy",
+        "pattern": "Leaving SQL Server 2022+ Query Store disabled/unhealthy/unbounded without a documented target/operations reason",
+        "remediation": "Enable and workload-tune capture, retention, size, cleanup, and monitoring",
+        "sources": [
+          "DBEP-01",
+          "MSSQL-22"
+        ]
+      }
+    },
+    {
+      "id": "MSSQL-OPT-SARG-001",
+      "scope": "sqlserver",
+      "pairing": "exact",
+      "applicability": {
+        "scope": "sqlserver",
+        "version_bound": false
+      },
+      "bp": {
+        "level": "SHOULD",
+        "class": "context-sensitive",
+        "rule": "Keep material predicates SARGable and parameter/column types/collations aligned; justify functions/conversions on indexed columns with a measured computed-column/index or alternative design."
+      },
+      "ap": {
+        "level": "SHOULD_NOT",
+        "class": "context-sensitive",
+        "pattern": "Applying functions/conversions to indexed columns or mismatched parameter types/collations on material predicates without a measured supported access design",
+        "remediation": "Restore SARGable aligned predicates or justify a computed/indexed alternative",
+        "sources": [
+          "DBEP-01",
+          "MSSQL-18"
+        ]
+      }
+    },
+    {
+      "id": "MSSQL-OPT-SET-001",
+      "scope": "sqlserver",
+      "pairing": "exact",
+      "applicability": {
+        "scope": "sqlserver",
+        "version_bound": false
+      },
+      "bp": {
+        "level": "SHOULD",
+        "class": "context-sensitive",
+        "rule": "Prefer set-based/batched work and eliminate avoidable N+1/cursor/per-row execution while preserving correctness, transaction, memory, and concurrency boundaries."
+      },
+      "ap": {
+        "level": "SHOULD_NOT",
+        "class": "context-sensitive",
+        "pattern": "Using avoidable N+1/cursor/per-row execution where a bounded set-based/batched operation preserves behavior",
+        "remediation": "Use and verify set-based/batched logic with transaction/memory/concurrency limits",
+        "sources": [
+          "DBEP-01",
+          "MSSQL-18"
+        ]
+      }
+    },
+    {
+      "id": "MSSQL-OPT-STATS-001",
+      "scope": "sqlserver",
+      "pairing": "exact",
+      "applicability": {
+        "scope": "sqlserver",
+        "version_bound": false
+      },
+      "bp": {
+        "level": "MUST",
+        "class": "context-sensitive",
+        "rule": "Keep automatic statistics policy intentional and diagnose freshness/sampling/cardinality before rebuilding indexes or forcing plans; update statistics only at evidence-based scope/frequency."
+      },
+      "ap": {
+        "level": "MUST_NOT",
+        "class": "context-sensitive",
+        "pattern": "Rebuilding indexes/forcing plans before diagnosing statistics freshness/sampling/cardinality, disabling auto statistics blindly, or updating all statistics excessively",
+        "remediation": "Use evidence-based auto/manual statistics scope and frequency",
+        "sources": [
+          "DBEP-01",
+          "MSSQL-23"
+        ]
+      }
+    },
+    {
+      "id": "MSSQL-OPT-TXN-001",
+      "scope": "sqlserver",
+      "pairing": "exact",
+      "applicability": {
+        "scope": "sqlserver",
+        "version_bound": false
+      },
+      "bp": {
+        "level": "MUST",
+        "class": "invariant",
+        "rule": "Keep transactions as short as correctness permits, acquire resources in consistent order, avoid external waits while holding locks, and verify blocking/deadlock/retry behavior."
+      },
+      "ap": {
+        "level": "MUST_NOT",
+        "class": "invariant",
+        "pattern": "Holding transactions across avoidable work/external waits, acquiring resources inconsistently, or ignoring blocking/deadlock/retry behavior",
+        "remediation": "Keep correctness-bounded transactions short and verify concurrency/failure behavior",
+        "sources": [
+          "DBEP-01",
+          "MSSQL-10"
         ]
       }
     },
@@ -6881,6 +7796,114 @@
       "observed": "SQL Server 2025 ver17 docs",
       "scope": "Optional-filter parameter-sensitive plan behavior"
     },
+    "MSSQL-14": {
+      "type": "Microsoft official",
+      "name": "CREATE FUNCTION",
+      "urls": [
+        "https://learn.microsoft.com/en-us/sql/t-sql/statements/create-function-transact-sql?view=sql-server-ver17"
+      ],
+      "observed": "SQL Server ver17 docs",
+      "scope": "Function kinds and contracts"
+    },
+    "MSSQL-15": {
+      "type": "Microsoft official",
+      "name": "Scalar UDF inlining",
+      "urls": [
+        "https://learn.microsoft.com/en-us/sql/relational-databases/user-defined-functions/scalar-udf-inlining?view=sql-server-ver17"
+      ],
+      "observed": "SQL Server ver17 docs",
+      "scope": "Scalar function plan behavior"
+    },
+    "MSSQL-16": {
+      "type": "Microsoft official",
+      "name": "CREATE TRIGGER",
+      "urls": [
+        "https://learn.microsoft.com/en-us/sql/t-sql/statements/create-trigger-transact-sql?view=sql-server-ver17"
+      ],
+      "observed": "SQL Server ver17 docs",
+      "scope": "Trigger scope, events, and deployment"
+    },
+    "MSSQL-17": {
+      "type": "Microsoft official",
+      "name": "CREATE TYPE",
+      "urls": [
+        "https://learn.microsoft.com/en-us/sql/t-sql/statements/create-type-transact-sql?view=sql-server-ver17"
+      ],
+      "observed": "SQL Server ver17 docs",
+      "scope": "User-defined type behavior and replacement constraints"
+    },
+    "MSSQL-18": {
+      "type": "Microsoft official",
+      "name": "Index architecture and design guide",
+      "urls": [
+        "https://learn.microsoft.com/en-us/sql/relational-databases/sql-server-index-design-guide?view=sql-server-ver17"
+      ],
+      "observed": "SQL Server ver17 docs",
+      "scope": "Workload-driven index design"
+    },
+    "MSSQL-19": {
+      "type": "Microsoft official",
+      "name": "Optimize index maintenance",
+      "urls": [
+        "https://learn.microsoft.com/en-us/sql/relational-databases/indexes/reorganize-and-rebuild-indexes?view=sql-server-ver17"
+      ],
+      "observed": "SQL Server ver17 docs",
+      "scope": "Density, fragmentation, fill factor, and maintenance"
+    },
+    "MSSQL-20": {
+      "type": "Microsoft official",
+      "name": "Primary and foreign key constraints",
+      "urls": [
+        "https://learn.microsoft.com/en-us/sql/relational-databases/tables/primary-and-foreign-key-constraints?view=sql-server-ver17"
+      ],
+      "observed": "SQL Server ver17 docs",
+      "scope": "Entity and referential integrity"
+    },
+    "MSSQL-21": {
+      "type": "Microsoft official",
+      "name": "Database normalization basics",
+      "urls": [
+        "https://learn.microsoft.com/en-us/previous-versions/troubleshoot/microsoft-365/microsoft-365-apps/access/database-normalization-description"
+      ],
+      "observed": "Microsoft relational-design primer",
+      "scope": "1NF/2NF/3NF terminology only; SQL Server implementation decisions require current engine evidence"
+    },
+    "MSSQL-22": {
+      "type": "Microsoft official",
+      "name": "Query Store",
+      "urls": [
+        "https://learn.microsoft.com/en-us/sql/relational-databases/performance/monitoring-performance-by-using-the-query-store?view=sql-server-ver17"
+      ],
+      "observed": "SQL Server ver17 docs",
+      "scope": "Query, plan, runtime, and wait history"
+    },
+    "MSSQL-23": {
+      "type": "Microsoft official",
+      "name": "Statistics",
+      "urls": [
+        "https://learn.microsoft.com/en-us/sql/relational-databases/statistics/statistics?view=sql-server-ver17"
+      ],
+      "observed": "SQL Server ver17 docs",
+      "scope": "Cardinality evidence and statistics maintenance"
+    },
+    "MSSQL-24": {
+      "type": "Microsoft official",
+      "name": "Query Store hints best practices",
+      "urls": [
+        "https://learn.microsoft.com/en-us/sql/relational-databases/performance/query-store-hints-best-practices?view=sql-server-ver17"
+      ],
+      "observed": "SQL Server ver17 docs",
+      "scope": "Last-resort reversible hinting"
+    },
+    "MSSQL-25": {
+      "type": "Microsoft official",
+      "name": "CREATE TABLE",
+      "urls": [
+        "https://learn.microsoft.com/en-us/sql/t-sql/statements/create-table-transact-sql?view=sql-server-ver17"
+      ],
+      "observed": "SQL Server ver17 docs",
+      "scope": "Data types, nullability, and row constraints"
+    },
     "DBHS-01": {
       "type": "User team policy",
       "name": "SQL Server stored procedure house standard",
@@ -6889,6 +7912,24 @@
       ],
       "observed": "Standard 1.0.0 approved 2026-07-28",
       "scope": "Mandatory stored procedure naming, templates, verification, and exceptions"
+    },
+    "DBHS-02": {
+      "type": "User team policy",
+      "name": "SQL Server function, trigger, and type house standard",
+      "urls": [
+        "sqlserver-object-house-standard.md"
+      ],
+      "observed": "Standard 1.0.0 approved 2026-07-28",
+      "scope": "Mandatory function/trigger/type naming, headers, templates, verification, and exceptions"
+    },
+    "DBEP-01": {
+      "type": "Microsoft-derived local guide",
+      "name": "SQL Server database engineering practices",
+      "urls": [
+        "sqlserver-engineering-practices.md"
+      ],
+      "observed": "Guide 1.0.0 approved 2026-07-28",
+      "scope": "Database design, normalization, indexes, and optimization"
     },
     "SEC-01": {
       "type": "Security reference",

@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "catalog_version": "1.1.0",
+  "catalog_version": "1.2.0",
   "verified_at": "2026-07-28",
   "next_light_review_at": "2026-08-28",
   "next_full_review_at": "2026-10-28",
@@ -25,6 +25,7 @@
       "approved_majors": [22, 24],
       "observed_ref": "Node.js 24.18.0 latest LTS; Node.js 22 LTS; Node.js 26 Current",
       "approved_ref": "Node.js 24.18.0 latest LTS; Node.js 22 LTS",
+      "source_ref_formats": ["node@v{version}"],
       "observation_status": "reviewed-deferred",
       "observation_note": "Node.js 26 remains Current. Review promotion only after its official LTS transition and framework/hosting compatibility evidence.",
       "scaffold": null,
@@ -45,6 +46,7 @@
       "approved_range": ">=6,<7",
       "observed_ref": "TypeScript 7.0 stable announced 2026-07-08",
       "approved_ref": "TypeScript 6.0.3",
+      "source_ref_formats": ["typescript@{version}"],
       "observation_status": "project-compatibility-review-required",
       "observation_note": "TypeScript 7 uses the native compiler. Promotion requires selected framework, compiler-API, plugin, lint, editor, and CI evidence.",
       "scaffold": null,
@@ -64,6 +66,7 @@
       "approved_range": "=2.2",
       "observed_ref": "WCAG 2.2 W3C Recommendation",
       "approved_ref": "WCAG 2.2 W3C Recommendation",
+      "source_ref_formats": ["WCAG-{version}@{date}"],
       "scaffold": null,
       "docs": [
         "https://www.w3.org/TR/WCAG22/",
@@ -78,6 +81,7 @@
       "approved_range": "=7.3",
       "observed_ref": "PHP 7.3 EOL",
       "approved_ref": "PHP 7.3 EOL",
+      "source_ref_formats": ["php@{version}"],
       "scaffold": null,
       "docs": [
         "https://www.php.net/releases/index.php",
@@ -93,6 +97,7 @@
       "approved_range": ">=8.2,<8.6",
       "observed_ref": "PHP 8.2-8.5 supported on 2026-07-28",
       "approved_ref": "PHP 8.2-8.5 supported on 2026-07-28",
+      "source_ref_formats": ["php@{version}"],
       "scaffold": {
         "mode": "framework-dependent",
         "command": "composer create-project <official-framework-package>:<approved-version> <target>",
@@ -113,6 +118,7 @@
       "approved_range": ">=16,<17",
       "observed_ref": "Next.js 16 official docs",
       "approved_ref": "Next.js 16 official docs",
+      "source_ref_formats": ["create-next-app@{version}"],
       "scaffold": {
         "mode": "official-cli",
         "repository": "https://github.com/vercel/next.js/tree/canary/packages/create-next-app",
@@ -135,6 +141,7 @@
       "approved_range": ">=19,<20",
       "observed_ref": "React 19.2 official docs",
       "approved_ref": "React 19.2 official docs",
+      "source_ref_formats": ["react@{version}"],
       "scaffold": {
         "mode": "requirements-routed",
         "command": "npm create vite@<approved-version> <target> -- --template react-ts",
@@ -156,6 +163,7 @@
       "approved_range": ">=11,<12",
       "observed_ref": "NestJS 11.1.24",
       "approved_ref": "NestJS 11.1.24",
+      "source_ref_formats": ["@nestjs/cli@{version}"],
       "scaffold": {
         "mode": "official-cli",
         "repository": "https://github.com/nestjs/typescript-starter",
@@ -180,6 +188,7 @@
       "approved_range": ">=3,<4",
       "observed_ref": "create-vue 3.22.3; Vue 3 official docs",
       "approved_ref": "create-vue 3.22.3; Vue 3 official docs",
+      "source_ref_formats": ["create-vue@{version}"],
       "scaffold": {
         "mode": "official-cli",
         "repository": "https://github.com/vuejs/create-vue",
@@ -202,6 +211,7 @@
       "approved_range": ">=4,<5",
       "observed_ref": "Tailwind v4 official docs",
       "approved_ref": "Tailwind v4 official docs",
+      "source_ref_formats": ["tailwindcss@{version}"],
       "scaffold": null,
       "docs": [
         "https://tailwindcss.com/docs/installation/framework-guides",
@@ -217,6 +227,7 @@
       "approved_range": ">=14,<19",
       "observed_ref": "PostgreSQL 18.4 current; 14-18 supported",
       "approved_ref": "PostgreSQL 18.4 current; 14-18 supported",
+      "source_ref_formats": ["postgresql@{version}"],
       "scaffold": null,
       "docs": [
         "https://www.postgresql.org/support/versioning/",
@@ -234,6 +245,7 @@
       "approved_range": ">=16,<18",
       "observed_ref": "SQL Server 2022/2025 and SQL Database Projects docs",
       "approved_ref": "SQL Server 2022/2025 and SQL Database Projects docs",
+      "source_ref_formats": ["sql-server-ver{major}@{date}"],
       "scaffold": {
         "mode": "official-database-project",
         "repository": "https://github.com/microsoft/DacFx",
@@ -250,8 +262,17 @@
         "https://learn.microsoft.com/en-us/sql/t-sql/language-elements/throw-transact-sql?view=sql-server-ver17",
         "https://learn.microsoft.com/en-us/sql/relational-databases/tables/create-unique-constraints?view=sql-server-ver17",
         "https://learn.microsoft.com/en-us/sql/relational-databases/performance/optional-parameter-optimization?view=sql-server-ver17",
+        "https://learn.microsoft.com/en-us/sql/t-sql/statements/create-function-transact-sql?view=sql-server-ver17",
+        "https://learn.microsoft.com/en-us/sql/relational-databases/user-defined-functions/scalar-udf-inlining?view=sql-server-ver17",
+        "https://learn.microsoft.com/en-us/sql/t-sql/statements/create-trigger-transact-sql?view=sql-server-ver17",
         "https://learn.microsoft.com/en-us/sql/relational-databases/tables/use-table-valued-parameters-database-engine?view=sql-server-ver17",
-        "https://learn.microsoft.com/en-us/sql/relational-databases/triggers/create-dml-triggers-to-handle-multiple-rows-of-data?view=sql-server-ver17"
+        "https://learn.microsoft.com/en-us/sql/relational-databases/triggers/create-dml-triggers-to-handle-multiple-rows-of-data?view=sql-server-ver17",
+        "https://learn.microsoft.com/en-us/sql/t-sql/statements/create-type-transact-sql?view=sql-server-ver17",
+        "https://learn.microsoft.com/en-us/sql/relational-databases/sql-server-index-design-guide?view=sql-server-ver17",
+        "https://learn.microsoft.com/en-us/sql/relational-databases/indexes/reorganize-and-rebuild-indexes?view=sql-server-ver17",
+        "https://learn.microsoft.com/en-us/sql/relational-databases/tables/primary-and-foreign-key-constraints?view=sql-server-ver17",
+        "https://learn.microsoft.com/en-us/sql/relational-databases/performance/monitoring-performance-by-using-the-query-store?view=sql-server-ver17",
+        "https://learn.microsoft.com/en-us/sql/relational-databases/statistics/statistics?view=sql-server-ver17"
       ],
       "house_standards": [
         {
@@ -263,12 +284,34 @@
           "path": "stack-packs/sqlserver-house-standard.md",
           "sha256": "0dd0cd47b81042ad9993918608b0dc7a5da24e9f147547ac4791c0e2ee7dcdba",
           "next_review_at": "2026-10-28"
+        },
+        {
+          "id": "DBHS-02",
+          "display_name": "SQL Server Function, Trigger, and Type Team House Standard",
+          "version": "1.0.0",
+          "status": "approved",
+          "scope": "functions-triggers-types",
+          "path": "stack-packs/sqlserver-object-house-standard.md",
+          "sha256": "952fc90544121b1f710e441bb9abc8e0d6239d913344964872408ff3b54a387f",
+          "next_review_at": "2026-10-28"
+        }
+      ],
+      "engineering_guides": [
+        {
+          "id": "DBEP-01",
+          "display_name": "SQL Server Database Engineering Practices",
+          "version": "1.0.0",
+          "status": "approved",
+          "scope": "design-normalization-indexes-optimization",
+          "path": "stack-packs/sqlserver-engineering-practices.md",
+          "sha256": "885d63437e001a4a3244764ce1f95ec3ee27f795e871f363e7a502865d36345f",
+          "next_review_at": "2026-10-28"
         }
       ],
       "examples": [
         "https://github.com/microsoft/sql-server-samples"
       ],
-      "selection_note": "Confirm SQL Server/Azure SQL target, compatibility level, deployment tooling, and Visual Studio versus VS Code constraints. Apply DBHS-01 to stored procedures. Naming for functions, triggers, types, and other objects remains intentionally pending."
+      "selection_note": "Confirm SQL Server/Azure SQL target, compatibility level, deployment tooling, and Visual Studio versus VS Code constraints. Apply DBHS-01 to stored procedures, DBHS-02 to functions/triggers/types, and DBEP-01 to design/normalization/index/optimization review. Naming for other object kinds remains intentionally pending."
     }
   }
 }

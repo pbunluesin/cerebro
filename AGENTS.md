@@ -59,7 +59,8 @@ Run after changing plugin structure or skills:
 python3 scripts/validate_all.py
 python3 -m unittest discover -s tests -p 'test_*.py'
 python3 skills/create-project/scripts/check_tooling.py --target .
-bash -n scripts/*.sh skills/*/scripts/*.sh 2>/dev/null || true
+python3 scripts/validate_shell.py
+claude plugin validate . --strict
 ```
 
 Inspect `git diff` and `git status -sb` before reporting completion.

@@ -1,0 +1,28 @@
+/*
+------------------------|-------------------------------|---------------------------------------------
+-- Author               | DateTime                      | Comment
+------------------------|-------------------------------|---------------------------------------------
+-- <Developer Name>     | <YYYY-MM-DD>                  | Create FUNCTION V<version>: <Purpose>
+------------------------|-------------------------------|---------------------------------------------
+
+-- SELECT_TEST:
+-- SELECT [<schema_name>].[<purpose>_<module>_v<version>]
+-- (
+--     <safe_example_parameter>
+-- );
+
+-- PURPOSE:
+-- <Describe the calculation and caller-visible NULL/error/rounding behavior>
+*/
+
+-- Verify scalar UDF inlining and the actual caller plan on representative data.
+CREATE FUNCTION [<schema_name>].[<purpose>_<module>_v<version>]
+(
+    @<parameter_1> <SQL_DATA_TYPE>
+)
+RETURNS <SQL_RETURN_DATA_TYPE>
+AS
+BEGIN
+    RETURN <CONFIRMED_SCALAR_EXPRESSION>;
+END;
+GO

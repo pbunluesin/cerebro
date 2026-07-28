@@ -99,10 +99,23 @@ version, approved source refs, exceptions, and freshness date in
 `.cerebro/stack-profile.json`. Do not copy the full stack packs into generated
 projects or duplicate their rules in `AGENTS.md`.
 
-When SQL Server stored procedures are selected, the catalog's approved
-`DBHS-01` house standard is part of the reference set. Store its exact version,
-content hash, scope, and review deadline in the SQL Server reference record.
-Do not label the team policy as a universal external best practice.
+The approval record is not free text. Use:
+
+```text
+requirements-final:<YYYY-MM-DD>:<approver>
+```
+
+The date must not be later than profile resolution and the approver must be an
+auditable person/team identity. Approved output may use only Cerebro's installed
+canonical rule/policy/catalog bundle. Custom inputs are candidate-only until
+reviewed into that bundle.
+
+When SQL Server is selected, include every applicable approved local reference:
+`DBHS-01` for stored procedures, `DBHS-02` for functions/triggers/types, and
+`DBEP-01` for database design, normalization, indexes, and optimization. Store
+each exact version, content hash, scope, and review deadline in the SQL Server
+reference record. Do not label team policy as universal external best practice,
+and do not turn context-sensitive engineering guidance into a blanket rule.
 
 Run an official initializer only after showing its exact command, expected
 writes, network/dependency impact, conflict behavior, and rollback path.
@@ -137,3 +150,6 @@ version policy and do not need a catalog source ref.
 - Fail closed when a source deadline passes or a version-bound rule cannot be
   mapped. Report the exact refresh required; never silently fall back to a rule
   written for another version.
+- Treat both light and full semantic review deadlines as blocking. The selector,
+  status helper, and final validator share one freshness evaluator so their
+  results cannot intentionally diverge.

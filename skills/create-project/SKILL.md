@@ -29,8 +29,8 @@ Accept natural-language instructions plus these optional controls:
 - `--profile minimal|standard|critical`: override automatic profile selection.
 - `--agents codex|claude|both`: default to `both`.
 - `--stacks <comma-separated-scaffold-scopes>`: normally derived from the
-  approved stack profile; currently `sqlserver` adds the team procedure
-  standard assets.
+  approved stack profile; currently `sqlserver` adds the team procedure,
+  function, trigger, type, and data-document assets.
 - `--requirements-only`: stop after the final requirements package.
 - `--prototype`: allow a deliberately disposable prototype path; record omitted readiness work.
 - `--non-interactive`: use safe assumptions for non-blocking gaps, but stop on blocking product, security, data, or operational decisions.
@@ -136,7 +136,7 @@ stage is mandatory unless `--requirements-only` is set.
      --stack <scope>@<exact-version> \
      --path '<scope>=<project-relative-glob>' \
      --source-ref '<catalog-scope>=<exact-package-tag-commit-or-dated-docs-ref>' \
-     --approval-record <requirement-or-ADR-checkpoint> \
+     --approval-record 'requirements-final:<YYYY-MM-DD>:<approver>' \
      --out <working-stack-profile.json>
    ```
 
@@ -147,12 +147,17 @@ stage is mandatory unless `--requirements-only` is set.
 The generated profile is the project-facing source. Do not copy the complete
 [best-practices.md](references/stack-packs/best-practices.md) or
 [anti-patterns.md](references/stack-packs/anti-patterns.md) into a project.
-When SQL Server stored procedures are selected, read
+When SQL Server is selected, read every applicable local reference in full:
 [sqlserver-house-standard.md](references/stack-packs/sqlserver-house-standard.md)
-in full and record its approved version/hash through the generated profile.
-Treat it as mandatory user team policy rather than universal Microsoft best
-practice. Naming for functions, triggers, types, and other SQL Server objects
-remains unresolved; never infer it from the procedure convention.
+for procedures,
+[sqlserver-object-house-standard.md](references/stack-packs/sqlserver-object-house-standard.md)
+for functions/triggers/types, and
+[sqlserver-engineering-practices.md](references/stack-packs/sqlserver-engineering-practices.md)
+for design/normalization/index/optimization review. Record every applicable
+version/hash through the generated profile. Treat DBHS-01 and DBHS-02 as
+mandatory user team policy, and DBEP-01 as Microsoft-derived guidance whose
+context-sensitive decisions still require exact target and workload evidence.
+Do not infer naming for object kinds those standards do not cover.
 
 ## Stage 5: Select a project profile and architecture
 
@@ -187,23 +192,33 @@ If `--requirements-only` is absent:
    initializer is selected, dry-run Cerebro directly:
 
    ```bash
-   python3 scripts/bootstrap_project.py --target <path> --name <name> --profile <profile> --agents <agents> [--stacks sqlserver] --dry-run
+   python3 scripts/bootstrap_project.py \
+     --target <path> \
+     --name <name> \
+     --profile <profile> \
+     --agents <agents> \
+     [--stacks sqlserver] \
+     --stack-profile <working-stack-profile.json> \
+     --dry-run
    ```
 
 4. Show conflicts. Do not overwrite existing files unless the user explicitly authorizes merge or replacement. Run the scaffold without `--dry-run`.
-5. Write the approved selector output to
-   `.cerebro/stack-profile.json`. It must contain `status: approved`, the
-   approval record, exact versions and paths, source/pack refs, and selected
-   rule IDs.
+5. Pass the approved selector output through `--stack-profile`; the scaffold
+   writes it to `.cerebro/stack-profile.json` and pins its content hash in
+   `.cerebro/project.json`. The stack profile must contain `status: approved`,
+   the structured approval record, exact versions and normalized paths,
+   source/pack refs, and selected rule IDs. Do not copy or hand-edit it after
+   generation.
 6. Replace generated `TBD` sections with the confirmed requirement package. Preserve `TBD` only for explicitly non-blocking unknowns and name an owner or resolution point.
 7. Follow [document-contracts.md](references/document-contracts.md); do not duplicate policy across generated files.
 8. Populate `docs/CONTEXT.md` with confirmed project-wide language. If multiple real bounded contexts were confirmed, also create `docs/CONTEXT_MAP.md` and `docs/contexts/*.md` lazily and route context-specific terms to their owner; do not infer contexts from folders or deployables alone.
 9. Read [stack-layouts.md](references/stack-layouts.md), select the smallest source tree that matches the confirmed deployable units, and add stack-native source/test/config directories. Do not create speculative layers or empty services.
-   When the approved stack includes SQL Server procedures, pass
-   `--stacks sqlserver`; this adds `docs/DATA.md` plus SQL-only team templates
-   under `database/templates/sqlserver/`. Populate a template only after the
-   procedure input gate is complete. Do not copy the raw `temp/db_standard`
-   notes or invent other SQL object standards.
+   When the approved stack includes SQL Server, pass `--stacks sqlserver`;
+   this adds `docs/DATA.md` plus SQL-only team templates for procedures,
+   scalar/inline table-valued functions, DML triggers, and table types under
+   `database/templates/sqlserver/`. Populate an object template only after its
+   DBHS input gate is complete. These are starter sources, not a requirement to
+   create every object kind. Do not invent standards for uncovered objects.
 10. Create ADRs only through `domain-modeling`'s decision gate. Keep the core record concise and add optional sections only when they preserve material reasoning.
 11. Do not create `PROCESS.md`. Place durable rules in `AGENTS.md`, current state in `PROJECT_STATE.md`, and repeatable process in this plugin's skills.
 12. Before any commit handoff, run the safety contract's Dissent and commit gates; scaffolding alone is not completion evidence.
@@ -238,14 +253,21 @@ python3 scripts/check_tooling.py --target <path>
 Run:
 
 ```bash
-python3 scripts/validate_project.py --target <path> --profile <profile> --agents <agents> [--stacks sqlserver]
+python3 scripts/validate_project.py --target <path>
 ```
+
+The validator derives profile, agent adapters, features, stack-specific assets,
+and the exact required-file plan from `.cerebro/project.json`. Legacy caller
+flags are compatibility assertions only and fail when they conflict with the
+manifest.
 
 Do not report `IMPLEMENTATION_READY` unless:
 
 - validation exits successfully
 - no unresolved template tokens remain
 - every blocking gate is resolved
+- `.cerebro/project.json` matches the canonical scaffold plan and pins the
+  installed stack profile
 - `.cerebro/stack-profile.json` is approved, current, and internally consistent
 - acceptance criteria have a verification method
 - critical projects include security, rollback, observability, and recovery coverage

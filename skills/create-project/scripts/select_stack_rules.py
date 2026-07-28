@@ -6,7 +6,7 @@ Examples:
     --stack nextjs@16.1.0 --stack react@19.2.0 \
     --stack typescript@5.9.0 --stack a11y@2.2 \
     --path 'nextjs=apps/web/**' \
-    --approval-record 'requirements-final:2026-07-28' \
+    --approval-record 'requirements-final:2026-07-28:project-owner' \
     --out .cerebro/stack-profile.json
 
 The selector is deliberately offline and dependency-free. Updating upstream
@@ -18,10 +18,13 @@ from __future__ import annotations
 
 import argparse
 import datetime as dt
+import hashlib
 import json
 import re
 import sys
 from pathlib import Path
+
+from stack_freshness import evaluate_freshness
 
 
 SCRIPT_DIR = Path(__file__).resolve().parent
@@ -34,6 +37,13 @@ UNSTABLE_REF = re.compile(
     r"(^|[^a-z0-9])(latest|canary|main|master|alpha|beta|rc|nightly|preview)"
     r"([^a-z0-9]|$)",
     re.IGNORECASE,
+)
+APPROVAL_RECORD_RE = re.compile(
+    r"^requirements-final:(\d{4}-\d{2}-\d{2}):"
+    r"([A-Za-z0-9][A-Za-z0-9._@-]{1,127})$"
+)
+SOURCE_REF_TOKENS = re.compile(
+    r"(\{version\}|\{major\}|\{minor\}|\{patch\}|\{date\})"
 )
 
 
@@ -112,11 +122,43 @@ def parse_paths(values: list[str]) -> dict[str, set[str]]:
         scope, path = scope.strip(), path.strip()
         if not scope or not path:
             raise SelectionError(f"--path {value!r} has an empty scope or path")
+        if (
+            "\\" in path
+            or "\x00" in path
+            or path.startswith("/")
+            or re.match(r"^[A-Za-z]:", path)
+            or any(part in {"", ".", ".."} for part in path.split("/"))
+        ):
+            raise SelectionError(
+                f"--path {path!r} must be a normalized project-relative glob "
+                "without absolute, empty, dot, parent, drive, or backslash segments"
+            )
         parsed.setdefault(scope, set()).add(path)
     return parsed
 
 
-def validate_source_refs(source_refs: dict[str, str]) -> None:
+def source_ref_regex(template: str, version: str) -> re.Pattern[str]:
+    parts = version.split(".")
+    replacements = {
+        "{version}": re.escape(version),
+        "{major}": re.escape(parts[0]),
+        "{minor}": re.escape(parts[1] if len(parts) > 1 else "0"),
+        "{patch}": re.escape(parts[2] if len(parts) > 2 else "0"),
+        "{date}": r"\d{4}-\d{2}-\d{2}",
+    }
+    pattern = "".join(
+        replacements.get(part, re.escape(part))
+        for part in SOURCE_REF_TOKENS.split(template)
+        if part
+    )
+    return re.compile(f"^{pattern}$")
+
+
+def validate_source_refs(
+    source_refs: dict[str, str],
+    versions: dict[str, str],
+    catalog: dict,
+) -> None:
     for scope, source_ref in source_refs.items():
         if UNSTABLE_REF.search(source_ref):
             raise SelectionError(
@@ -126,46 +168,122 @@ def validate_source_refs(source_refs: dict[str, str]) -> None:
             raise SelectionError(
                 f"{scope} source ref {source_ref!r} has no version, date, or commit"
             )
-
-
-def check_freshness(as_of: dt.date, policy: dict, catalog: dict) -> None:
-    checks = [
-        ("version policy", policy.get("next_review_at")),
-        ("official source catalog", catalog.get("next_light_review_at")),
-    ]
-    for label, raw_deadline in checks:
-        try:
-            deadline = dt.date.fromisoformat(raw_deadline)
-        except (TypeError, ValueError) as exc:
-            raise SelectionError(f"{label} has invalid review deadline") from exc
-        if as_of > deadline:
+        source = catalog.get("stacks", {}).get(scope)
+        if not source:
+            continue
+        formats = source.get("source_ref_formats")
+        if (
+            not isinstance(formats, list)
+            or not formats
+            or not all(isinstance(item, str) and item for item in formats)
+        ):
             raise SelectionError(
-                f"{label} is stale as of {as_of}; review it before selecting rules"
+                f"{scope} source catalog has no source_ref_formats contract"
+            )
+        version = versions.get(scope)
+        if not version or not any(
+            source_ref_regex(template, version).fullmatch(source_ref)
+            for template in formats
+        ):
+            raise SelectionError(
+                f"{scope} source ref {source_ref!r} does not match the "
+                f"approved format for {scope}@{version}; expected one of "
+                + ", ".join(formats)
             )
 
 
-def check_house_standards(
+def validate_approval_record(
+    approval_record: str | None,
+    as_of: dt.date,
+) -> None:
+    if approval_record is None:
+        return
+    match = APPROVAL_RECORD_RE.fullmatch(approval_record)
+    if not match:
+        raise SelectionError(
+            "--approval-record must use "
+            "requirements-final:<YYYY-MM-DD>:<approver>"
+        )
+    try:
+        approved_at = dt.date.fromisoformat(match.group(1))
+    except ValueError as exc:
+        raise SelectionError("--approval-record has an invalid date") from exc
+    if approved_at > as_of:
+        raise SelectionError("--approval-record date cannot be after --as-of")
+
+
+def sha256(path: Path) -> str:
+    value = hashlib.sha256()
+    with path.open("rb") as stream:
+        for chunk in iter(lambda: stream.read(65536), b""):
+            value.update(chunk)
+    return value.hexdigest()
+
+
+def validate_input_bundle(
+    args: argparse.Namespace,
+    rules: dict,
+) -> tuple[str, str, str]:
+    try:
+        actual_rules_hash = sha256(args.rules)
+        actual_policy_hash = sha256(args.version_policy)
+        actual_catalog_hash = sha256(args.source_catalog)
+    except OSError as exc:
+        raise SelectionError(f"cannot hash selection input bundle: {exc}") from exc
+    if rules.get("version_policy", {}).get("sha256") != actual_policy_hash:
+        raise SelectionError(
+            "version policy content does not match rules.json; regenerate the "
+            "reviewed rule bundle"
+        )
+    if rules.get("source_catalog", {}).get("sha256") != actual_catalog_hash:
+        raise SelectionError(
+            "source catalog content does not match rules.json; regenerate the "
+            "reviewed rule bundle"
+        )
+    custom_inputs = any(
+        supplied.resolve() != canonical.resolve()
+        for supplied, canonical in (
+            (args.rules, DEFAULT_RULES),
+            (args.version_policy, DEFAULT_POLICY),
+            (args.source_catalog, DEFAULT_CATALOG),
+        )
+    )
+    if args.approval_record and custom_inputs:
+        raise SelectionError(
+            "custom rule/catalog/policy paths may produce candidate output "
+            "only; approved profiles require the installed canonical bundle"
+        )
+    return actual_rules_hash, actual_policy_hash, actual_catalog_hash
+
+
+def check_local_references(
     as_of: dt.date, selected_scopes: set[str], catalog: dict
 ) -> None:
     for scope in sorted(selected_scopes):
         source = catalog.get("stacks", {}).get(scope, {})
-        for standard in source.get("house_standards", []):
-            if standard.get("status") != "approved":
-                raise SelectionError(
-                    f"{scope} house standard {standard.get('id')} is not approved"
-                )
-            try:
-                deadline = dt.date.fromisoformat(standard.get("next_review_at"))
-            except (TypeError, ValueError) as exc:
-                raise SelectionError(
-                    f"{scope} house standard {standard.get('id')} has an "
-                    "invalid review deadline"
-                ) from exc
-            if as_of > deadline:
-                raise SelectionError(
-                    f"{scope} house standard {standard.get('id')} is stale as "
-                    f"of {as_of}; review it before selecting rules"
-                )
+        for field, label in (
+            ("house_standards", "house standard"),
+            ("engineering_guides", "engineering guide"),
+        ):
+            for reference in source.get(field, []):
+                if reference.get("status") != "approved":
+                    raise SelectionError(
+                        f"{scope} {label} {reference.get('id')} is not approved"
+                    )
+                try:
+                    deadline = dt.date.fromisoformat(
+                        reference.get("next_review_at")
+                    )
+                except (TypeError, ValueError) as exc:
+                    raise SelectionError(
+                        f"{scope} {label} {reference.get('id')} has an "
+                        "invalid review deadline"
+                    ) from exc
+                if as_of > deadline:
+                    raise SelectionError(
+                        f"{scope} {label} {reference.get('id')} is stale as "
+                        f"of {as_of}; review it before selecting rules"
+                    )
 
 
 def closure(selected: set[str], scopes: dict) -> set[str]:
@@ -231,24 +349,43 @@ def select(args: argparse.Namespace) -> dict:
     catalog = load_json(args.source_catalog)
     if rules.get("schema_version") != 2:
         raise SelectionError("rules.json must use schema_version 2")
+    (
+        actual_rules_hash,
+        actual_policy_hash,
+        actual_catalog_hash,
+    ) = validate_input_bundle(args, rules)
 
     try:
         as_of = dt.date.fromisoformat(args.as_of)
     except ValueError as exc:
         raise SelectionError("--as-of must be an ISO date") from exc
-    check_freshness(as_of, policy, catalog)
+    validate_approval_record(args.approval_record, as_of)
 
     versions = parse_pairs(args.stack, "@", "--stack")
     paths = parse_paths(args.path)
     source_refs = parse_pairs(args.source_ref, "=", "--source-ref")
-    validate_source_refs(source_refs)
     scopes = policy.get("scopes", {})
     unknown = sorted(set(versions) - set(scopes))
     if unknown:
         raise SelectionError("unknown stack scope(s): " + ", ".join(unknown))
     if not versions:
         raise SelectionError("at least one --stack scope@exact-version is required")
-    check_house_standards(as_of, set(versions), catalog)
+    try:
+        freshness = evaluate_freshness(
+            as_of,
+            policy,
+            catalog,
+            set(versions),
+        )
+    except ValueError as exc:
+        raise SelectionError(str(exc)) from exc
+    if freshness["overdue"]:
+        overdue = freshness["overdue"][0]
+        raise SelectionError(
+            f"{overdue['label']} is stale as of {as_of}; review deadline "
+            f"was {overdue['date']}"
+        )
+    check_local_references(as_of, set(versions), catalog)
     source_scopes = set(versions) & set(catalog.get("stacks", {}))
     unknown_source_refs = sorted(set(source_refs) - source_scopes)
     if unknown_source_refs:
@@ -262,6 +399,7 @@ def select(args: argparse.Namespace) -> dict:
             "resolved official --source-ref required for scope(s): "
             + ", ".join(missing_source_refs)
         )
+    validate_source_refs(source_refs, versions, catalog)
 
     applicable_scopes = closure(set(versions), scopes)
     rules_by_scope: dict[str, list[dict]] = {}
@@ -351,6 +489,7 @@ def select(args: argparse.Namespace) -> dict:
                 "docs": source.get("docs", [])[:2],
                 "examples": source.get("examples", [])[:1],
                 "house_standards": source.get("house_standards", []),
+                "engineering_guides": source.get("engineering_guides", []),
             }
         )
 
@@ -369,13 +508,17 @@ def select(args: argparse.Namespace) -> dict:
                 "sha256"
             ],
             "version_policy_version": policy["policy_version"],
-            "version_policy_sha256": rules["version_policy"]["sha256"],
+            "version_policy_sha256": actual_policy_hash,
             "version_policy_next_review_at": policy["next_review_at"],
             "source_catalog_version": catalog["catalog_version"],
-            "source_catalog_sha256": rules["source_catalog"]["sha256"],
+            "source_catalog_sha256": actual_catalog_hash,
             "source_catalog_next_light_review_at": catalog[
                 "next_light_review_at"
             ],
+            "source_catalog_next_full_review_at": catalog[
+                "next_full_review_at"
+            ],
+            "rules_sha256": actual_rules_hash,
         },
         "stacks": stack_records,
         "official_references": official_references,

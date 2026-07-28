@@ -1,7 +1,7 @@
 ---
 id: tech-stack-anti-pattern-guardrails
 schema_version: "1.0"
-document_version: "2.1.0"
+document_version: "2.2.0"
 status: active
 language: en
 generated_at: "2026-07-28"
@@ -510,7 +510,9 @@ supported, and PostgreSQL 19 is beta.
 Resolve the SQL Server/Azure SQL target, engine version, compatibility level,
 edition, and deployment tooling first. The approved stored procedure house
 standard is team policy, not a universal Microsoft best-practice claim.
-Naming for functions, triggers, types, and other objects remains unresolved.
+DBHS-02 now governs functions, triggers, and types without guessed abbreviation
+prefixes. DBEP-01 supplies Microsoft-derived database design, normalization,
+index, and optimization guidance. Naming for other objects remains unresolved.
 
 | ID | Level | Class | Prohibited or discouraged pattern | Required handling | Sources |
 |---|---|---|---|---|---|
@@ -541,6 +543,43 @@ Naming for functions, triggers, types, and other objects remains unresolved.
 | `MSSQL-HOUSE-PLAN-001` | `SHOULD_NOT` | `context-sensitive` | Shipping nullable optional-filter predicates without representative plan evidence, especially when one cached plan cannot serve different selectivities | Test representative values/data and record the accepted plan or scoped performance exception | `DBHS-01`, `MSSQL-13` |
 | `MSSQL-HOUSE-VERIFY-001` | `MUST_NOT` | `project-policy` | Declaring a procedure done because SQL text was generated or visually inspected | Record exact-target build/parser and applicable contract, rollback, concurrency, permissions, driver, plan, and deployment evidence | `DBHS-01` |
 | `MSSQL-HOUSE-EXCEPTION-001` | `MUST_NOT` | `project-policy` | Silently deviating from the procedure house standard or approving a broad permanent waiver without owner, evidence, scope, review trigger, and reversal | Record a narrow project exception with all required fields and regenerate the project rule profile | `DBHS-01` |
+| `MSSQL-HOUSE-OBJECT-NAME-001` | `MUST_NOT` | `project-policy` | Naming a function, trigger, or type outside the confirmed DBHS-02 lowercase `snake_case` semantic shape ending `_vN`, or inventing `fn_`/`tr_`/`tt_` prefixes | Confirm semantic tokens and use the DBHS-02 object-specific shape | `DBHS-02` |
+| `MSSQL-HOUSE-OBJECT-HEADER-001` | `MUST_NOT` | `project-policy` | Omitting Author/DateTime/Comment, safe object test, or purpose from function/trigger/type source, guessing the author, or assuming the comment persists as SQL metadata | Complete the source header from confirmed evidence and add extended properties only under a separate contract | `DBHS-02` |
+| `MSSQL-HOUSE-FUNCTION-001` | `MUST_NOT` | `project-policy` | Creating a function without explicit kind, parameter/return/NULL/error/determinism/permission contract, or hiding side effects/cross-domain access | Select and document the function contract and simplest valid relational form | `DBHS-02`, `MSSQL-14` |
+| `MSSQL-HOUSE-FUNCTION-PLAN-001` | `MUST_NOT` | `context-sensitive` | Approving a material function without caller-plan evidence or assuming scalar UDF inlining from version/`is_inlineable` alone | Verify actual inlining, parallelism, row-path cost, and an inline/iTVF/join alternative | `DBHS-02`, `MSSQL-15` |
+| `MSSQL-HOUSE-TRIGGER-OBJECT-001` | `MUST_NOT` | `project-policy` | Adding a trigger without justification/target/event/timing/scope/context, or writing scalar/cursor/per-row logic, independent transactions, unbounded/external side effects, or one-row assumptions | Use the DBHS-02 set-based bounded trigger contract and test zero/one/many rows plus failures | `DBHS-02`, `MSSQL-07`, `MSSQL-16` |
+| `MSSQL-HOUSE-TRIGGER-VERSION-001` | `MUST_NOT` | `migration-risk` | Leaving old and new trigger versions active for the same target/event or deploying a transition without duplicate-side-effect and recovery evidence | Use one reviewed enable/disable/drop plan with exactly one active behavior owner | `DBHS-02`, `MSSQL-16` |
+| `MSSQL-HOUSE-TYPE-OBJECT-001` | `MUST_NOT` | `project-policy` | Creating a type without exact shape/constraints/nullability/collation/permissions/row-count/client contract or ignoring TVP `READONLY`/statistics behavior | Define and verify the complete DBHS-02 type contract | `DBHS-02`, `MSSQL-05`, `MSSQL-17` |
+| `MSSQL-HOUSE-TYPE-VERSION-001` | `MUST_NOT` | `migration-risk` | Dropping/recreating a referenced type or removing an old version before every procedure/function/client/permission dependency migrates | Create a new version, migrate dependents, verify compatibility, then obtain destructive approval for removal | `DBHS-02`, `MSSQL-17` |
+| `MSSQL-HOUSE-OBJECT-VERIFY-001` | `MUST_NOT` | `project-policy` | Declaring a function/trigger/type complete from generated DDL or visual review alone | Record exact-target build, contract, dependency, permission, workload/plan, deployment, recovery, and driver evidence | `DBHS-02` |
+| `MSSQL-HOUSE-OBJECT-EXCEPTION-001` | `MUST_NOT` | `project-policy` | Silently deviating from DBHS-02 or using a broad permanent waiver without object/version/path/owner/evidence/review/reversal | Record a narrow complete exception and regenerate the project profile | `DBHS-02` |
+| `MSSQL-DESIGN-MODEL-001` | `MUST_NOT` | `project-policy` | Choosing tables/EAV/JSON/generic columns before confirming entity ownership, identifiers, authoritative facts, lifecycle, null/default, retention, reconciliation, and migration semantics | Model the data contract and ownership before physical shape | `DBEP-01`, `MSSQL-20` |
+| `MSSQL-DESIGN-NORMAL-001` | `SHOULD_NOT` | `project-policy` | Designing transactional relational tables with repeating groups, partial-key dependencies, or transitive fact duplication without a bounded-context/document-semantic rationale | Use 1NF/2NF/3NF as the default checkpoint and record justified exceptions | `DBEP-01`, `MSSQL-21` |
+| `MSSQL-DESIGN-DENORM-001` | `MUST_NOT` | `context-sensitive` | Denormalizing merely to avoid joins or duplicating facts without measured benefit, source ownership, consistency window, reconciliation, recovery, and tests | Record and verify the full denormalization contract | `DBEP-01`, `MSSQL-21` |
+| `MSSQL-DESIGN-KEY-001` | `MUST_NOT` | `invariant` | Persisting an entity without stable candidate/primary keys, losing natural candidate uniqueness behind a surrogate, or leaving confirmed relationships/actions unenforced | Define PK/UNIQUE/FK contracts and intentional update/delete behavior | `DBEP-01`, `MSSQL-20` |
+| `MSSQL-DESIGN-CONSTRAINT-001` | `MUST_NOT` | `invariant` | Enforcing durable uniqueness/referential/domain integrity only with application/trigger pre-checks or leaving constraints disabled/untrusted | Use and deployment-validate trusted PK/UNIQUE/FK/CHECK constraints | `DBEP-01`, `MSSQL-11`, `MSSQL-20` |
+| `MSSQL-DESIGN-TYPE-001` | `MUST_NOT` | `invariant` | Using guessed/wasteful/ambiguous types, omitted length/precision/scale/timezone/null semantics, or mismatched parameter/column types that truncate or convert implicitly | Select explicit domain-fit types and verify boundaries plus access paths | `DBEP-01`, `MSSQL-25` |
+| `MSSQL-INDEX-EVIDENCE-001` | `MUST_NOT` | `context-sensitive` | Creating/removing an index without representative workload, before/after plan/runtime, DML/storage, and concurrency evidence | Tie index DDL to measured queries and acceptance/rollback thresholds | `DBEP-01`, `MSSQL-18` |
+| `MSSQL-INDEX-OVER-001` | `MUST_NOT` | `context-sensitive` | Adding duplicate/near-duplicate/wide indexes without usage review or ignoring write/log/memory/storage/backup/replica/maintenance cost | Consolidate and retain only indexes with net workload value | `DBEP-01`, `MSSQL-18` |
+| `MSSQL-INDEX-KEY-001` | `SHOULD_NOT` | `context-sensitive` | Ordering index keys by a blanket “most selective first” rule without equality/range/join/order and data-distribution evidence | Choose narrow key order from real access patterns | `DBEP-01`, `MSSQL-18` |
+| `MSSQL-INDEX-INCLUDE-001` | `SHOULD_NOT` | `context-sensitive` | Building “cover everything” indexes or adding wide/LOB include columns without proving benefit exceeds page/cache/storage/DML cost | Keep a small justified INCLUDE projection and verify | `DBEP-01`, `MSSQL-18` |
+| `MSSQL-INDEX-UNIQUE-001` | `MUST_NOT` | `invariant` | Relying on check-then-write for a confirmed uniqueness invariant | Enforce it with PK/UNIQUE constraint/index and concurrency tests | `DBEP-01`, `MSSQL-11`, `MSSQL-18` |
+| `MSSQL-INDEX-FILTER-001` | `SHOULD_NOT` | `context-sensitive` | Adding a filtered index whose subset is unstable or doesn't match material predicate/key/include needs | Prove selectivity, predicate compatibility, coverage, and workload benefit | `DBEP-01`, `MSSQL-18` |
+| `MSSQL-INDEX-FAMILY-001` | `MUST_NOT` | `context-sensitive` | Selecting clustered/columnstore/partitioned/specialized indexes by convention rather than workload semantics and exact target support | Choose the index family from measured OLTP/analytic/value/operations needs | `DBEP-01`, `MSSQL-18` |
+| `MSSQL-INDEX-MISSING-001` | `MUST_NOT` | `context-sensitive` | Applying missing-index DMV/tuning output automatically or one recommendation at a time without consolidation/full workload tests | Treat suggestions as candidates and approve reviewed DDL | `DBEP-01`, `MSSQL-18` |
+| `MSSQL-INDEX-FILL-001` | `SHOULD_NOT` | `context-sensitive` | Setting fill factor below `100`/`0` by habit or global script without measured page-split benefit | Keep default density or record index-specific split/I/O/storage evidence | `DBEP-01`, `MSSQL-19` |
+| `MSSQL-INDEX-MAINT-001` | `MUST_NOT` | `context-sensitive` | Rebuilding/reorganizing all indexes on fixed 5%/30% thresholds or schedules, or attributing statistics-driven improvements to fragmentation without evidence | Correlate workload, density, fragmentation, statistics, cost, and before/after results | `DBEP-01`, `MSSQL-19`, `MSSQL-23` |
+| `MSSQL-INDEX-ONLINE-001` | `MUST_NOT` | `migration-risk` | Running index maintenance without exact online/resumable support, lock/duration/log/tempdb/storage/HA/replica/resource and recovery review | Plan the operation for target capability and operational headroom | `DBEP-01`, `MSSQL-19` |
+| `MSSQL-OPT-BASELINE-001` | `MUST_NOT` | `context-sensitive` | Optimizing without SLA, Query Store/plan/runtime/wait/cardinality/concurrency baseline or measurable acceptance/rollback thresholds | Capture representative evidence and optimize the material bottleneck | `DBEP-01`, `MSSQL-22` |
+| `MSSQL-OPT-QUERYSTORE-001` | `SHOULD_NOT` | `project-policy` | Leaving SQL Server 2022+ Query Store disabled/unhealthy/unbounded without a documented target/operations reason | Enable and workload-tune capture, retention, size, cleanup, and monitoring | `DBEP-01`, `MSSQL-22` |
+| `MSSQL-OPT-PLAN-001` | `MUST_NOT` | `context-sensitive` | Claiming performance fixed from an estimated plan or elapsed time alone without actual rows, reads/CPU, spills, grants, waits, parallelism, and regression evidence | Capture and compare actual plans plus representative runtime metrics | `DBEP-01`, `MSSQL-22` |
+| `MSSQL-OPT-STATS-001` | `MUST_NOT` | `context-sensitive` | Rebuilding indexes/forcing plans before diagnosing statistics freshness/sampling/cardinality, disabling auto statistics blindly, or updating all statistics excessively | Use evidence-based auto/manual statistics scope and frequency | `DBEP-01`, `MSSQL-23` |
+| `MSSQL-OPT-SARG-001` | `SHOULD_NOT` | `context-sensitive` | Applying functions/conversions to indexed columns or mismatched parameter types/collations on material predicates without a measured supported access design | Restore SARGable aligned predicates or justify a computed/indexed alternative | `DBEP-01`, `MSSQL-18` |
+| `MSSQL-OPT-SET-001` | `SHOULD_NOT` | `context-sensitive` | Using avoidable N+1/cursor/per-row execution where a bounded set-based/batched operation preserves behavior | Use and verify set-based/batched logic with transaction/memory/concurrency limits | `DBEP-01`, `MSSQL-18` |
+| `MSSQL-OPT-PARAM-001` | `MUST_NOT` | `context-sensitive` | Applying one cached-plan/parameter-sniffing remedy to all distributions or using PSP/OPPO/recompile/dynamic SQL without exact compatibility and plan evidence | Test representative parameters and choose the narrowest verified treatment | `DBEP-01`, `MSSQL-13`, `MSSQL-22` |
+| `MSSQL-OPT-HINT-001` | `MUST_NOT` | `context-sensitive` | Adding query/table/join/Query Store hints as first-line or permanent fixes without owner/evidence/scope/expiry/regression/removal plan | Use experienced last-resort hinting under a reviewed reversible contract | `DBEP-01`, `MSSQL-24` |
+| `MSSQL-OPT-TXN-001` | `MUST_NOT` | `invariant` | Holding transactions across avoidable work/external waits, acquiring resources inconsistently, or ignoring blocking/deadlock/retry behavior | Keep correctness-bounded transactions short and verify concurrency/failure behavior | `DBEP-01`, `MSSQL-10` |
+| `MSSQL-OPT-CONFIG-001` | `MUST_NOT` | `context-sensitive` | Copying compatibility/CE/statistics/isolation/MAXDOP/memory/tempdb/compression/tuning/IQP settings from another workload or version | Resolve exact target and measure a scoped configuration decision with reversal | `DBEP-01`, `MSSQL-22`, `MSSQL-23` |
 
 ## 16. Node.js Runtime Guardrails
 
@@ -576,7 +615,7 @@ The following statements must **not** be generated as universal rules:
 | “Passing axe/lint proves accessibility.” | Automated checks cover only part of WCAG | Require manual evidence for critical flows |
 | “Every rule violation should be auto-fixed.” | Many findings affect behavior, security, data, or deployment | Auto-fix only syntax-local changes proven safe |
 | “Raw SQL and stored procedures are forbidden; always use an ORM.” | Parameterized SQL, views, and procedures are legitimate, often clearer, and sometimes required | Require parameterization, migration discipline, and review regardless of the access layer |
-| “Every SQL Server object must use a guessed `usp_`/`fn_`/`tr_` prefix.” | DBHS-01 defines procedure names only; no evidence defines prefixes for other object types | Apply DBHS-01 to procedures and keep function/trigger/type/other naming unresolved |
+| “Every SQL Server object must use a guessed `usp_`/`fn_`/`tr_` prefix.” | DBHS-01 and DBHS-02 deliberately use confirmed semantic names without invented abbreviation prefixes | Apply the object-specific DBHS-01/DBHS-02 shape; keep only still-uncovered object kinds unresolved |
 | “All duplication is forbidden; deduplicate on sight.” | Incidental look-alike code is not knowledge duplication, and a wrong abstraction costs more than the duplication it removed | Enforce `GLOBAL-DRY-001` on knowledge; apply `GLOBAL-DRY-002` with the rule of three for code |
 
 ## 18. Detection and Enforcement Mapping
@@ -775,7 +814,21 @@ Curated sources are coverage aids, not normative authority.
 | `MSSQL-11` | Microsoft official | [Unique constraints](https://learn.microsoft.com/en-us/sql/relational-databases/tables/create-unique-constraints?view=sql-server-ver17) | SQL Server ver17 docs | Authoritative duplicate prevention |
 | `MSSQL-12` | Microsoft official | [`THROW`](https://learn.microsoft.com/en-us/sql/t-sql/language-elements/throw-transact-sql?view=sql-server-ver17) | SQL Server ver17 docs | Caught-error propagation and XACT_ABORT behavior |
 | `MSSQL-13` | Microsoft official | [Optional parameter plan optimization](https://learn.microsoft.com/en-us/sql/relational-databases/performance/optional-parameter-optimization?view=sql-server-ver17) | SQL Server 2025 ver17 docs | Optional-filter parameter-sensitive plan behavior |
+| `MSSQL-14` | Microsoft official | [CREATE FUNCTION](https://learn.microsoft.com/en-us/sql/t-sql/statements/create-function-transact-sql?view=sql-server-ver17) | SQL Server ver17 docs | Function kinds and contracts |
+| `MSSQL-15` | Microsoft official | [Scalar UDF inlining](https://learn.microsoft.com/en-us/sql/relational-databases/user-defined-functions/scalar-udf-inlining?view=sql-server-ver17) | SQL Server ver17 docs | Scalar function plan behavior |
+| `MSSQL-16` | Microsoft official | [CREATE TRIGGER](https://learn.microsoft.com/en-us/sql/t-sql/statements/create-trigger-transact-sql?view=sql-server-ver17) | SQL Server ver17 docs | Trigger scope, events, and deployment |
+| `MSSQL-17` | Microsoft official | [CREATE TYPE](https://learn.microsoft.com/en-us/sql/t-sql/statements/create-type-transact-sql?view=sql-server-ver17) | SQL Server ver17 docs | User-defined type behavior and replacement constraints |
+| `MSSQL-18` | Microsoft official | [Index architecture and design guide](https://learn.microsoft.com/en-us/sql/relational-databases/sql-server-index-design-guide?view=sql-server-ver17) | SQL Server ver17 docs | Workload-driven index design |
+| `MSSQL-19` | Microsoft official | [Optimize index maintenance](https://learn.microsoft.com/en-us/sql/relational-databases/indexes/reorganize-and-rebuild-indexes?view=sql-server-ver17) | SQL Server ver17 docs | Density, fragmentation, fill factor, and maintenance |
+| `MSSQL-20` | Microsoft official | [Primary and foreign key constraints](https://learn.microsoft.com/en-us/sql/relational-databases/tables/primary-and-foreign-key-constraints?view=sql-server-ver17) | SQL Server ver17 docs | Entity and referential integrity |
+| `MSSQL-21` | Microsoft official | [Database normalization basics](https://learn.microsoft.com/en-us/previous-versions/troubleshoot/microsoft-365/microsoft-365-apps/access/database-normalization-description) | Microsoft relational-design primer | 1NF/2NF/3NF terminology only; SQL Server implementation decisions require current engine evidence |
+| `MSSQL-22` | Microsoft official | [Query Store](https://learn.microsoft.com/en-us/sql/relational-databases/performance/monitoring-performance-by-using-the-query-store?view=sql-server-ver17) | SQL Server ver17 docs | Query, plan, runtime, and wait history |
+| `MSSQL-23` | Microsoft official | [Statistics](https://learn.microsoft.com/en-us/sql/relational-databases/statistics/statistics?view=sql-server-ver17) | SQL Server ver17 docs | Cardinality evidence and statistics maintenance |
+| `MSSQL-24` | Microsoft official | [Query Store hints best practices](https://learn.microsoft.com/en-us/sql/relational-databases/performance/query-store-hints-best-practices?view=sql-server-ver17) | SQL Server ver17 docs | Last-resort reversible hinting |
+| `MSSQL-25` | Microsoft official | [CREATE TABLE](https://learn.microsoft.com/en-us/sql/t-sql/statements/create-table-transact-sql?view=sql-server-ver17) | SQL Server ver17 docs | Data types, nullability, and row constraints |
 | `DBHS-01` | User team policy | [SQL Server stored procedure house standard](sqlserver-house-standard.md) | Standard 1.0.0 approved 2026-07-28 | Mandatory stored procedure naming, templates, verification, and exceptions |
+| `DBHS-02` | User team policy | [SQL Server function, trigger, and type house standard](sqlserver-object-house-standard.md) | Standard 1.0.0 approved 2026-07-28 | Mandatory function/trigger/type naming, headers, templates, verification, and exceptions |
+| `DBEP-01` | Microsoft-derived local guide | [SQL Server database engineering practices](sqlserver-engineering-practices.md) | Guide 1.0.0 approved 2026-07-28 | Database design, normalization, indexes, and optimization |
 | `SEC-01` | Security reference | [OWASP Cheat Sheet Series](https://cheatsheetseries.owasp.org/) | Current cheat sheets | XSS/CSRF/SSRF, redirects, uploads, sessions, credentials, error/log hygiene |
 | `NODE-01` | Node.js official | [Node.js release schedule](https://nodejs.org/en/about/previous-releases) | Current schedule | Node.js runtime lifecycle |
 | `NODE-02` | Node.js official | [Packages and module systems](https://nodejs.org/api/packages.html) | Current API docs; resolve selected major | ESM/CommonJS and package entry points |
@@ -838,6 +891,17 @@ Review the target project using
       freshness has not expired.
 
 ## 24. Change Log
+
+### 2.2.0 — 2026-07-28
+
+- Added DBHS-02 enforcement for SQL Server functions, triggers, and
+  user-defined types, including source authorship, safe tests, dependency-safe
+  version transitions, and exact-target verification.
+- Added DBEP-01 enforcement for database design, normalization, keys,
+  constraints, data types, indexes, maintenance, Query Store, plans,
+  statistics, SARGability, parameter behavior, hinting, and configuration.
+- Registered Microsoft sources MSSQL-14 through MSSQL-25 and preserved
+  workload/version evidence gates instead of promoting blanket tuning rules.
 
 ### 2.1.0 — 2026-07-28
 

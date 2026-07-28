@@ -29,13 +29,15 @@ an automated refresh silently change project policy.
 5. Update the affected rows in `stack-packs/best-practices.md` and
    `stack-packs/anti-patterns.md`, then update
    `stack-version-policy.json` only when version applicability changed.
-   For a team-policy change, update
-   `stack-packs/sqlserver-house-standard.md`, its SQL templates, and its
-   `official-sources.json` version/hash entry in the same reviewed patch.
-   Compute the reviewed content hash explicitly:
+   For a SQL Server local-reference change, update the relevant standard/guide,
+   its affected SQL templates/rules, and its `official-sources.json`
+   version/hash entry in the same reviewed patch. Compute every changed content
+   hash explicitly:
 
    ```bash
    shasum -a 256 skills/create-project/references/stack-packs/sqlserver-house-standard.md
+   shasum -a 256 skills/create-project/references/stack-packs/sqlserver-object-house-standard.md
+   shasum -a 256 skills/create-project/references/stack-packs/sqlserver-engineering-practices.md
    ```
 
    The extractor fails closed and prints the expected hash when the registry
@@ -63,12 +65,12 @@ an automated refresh silently change project policy.
   migration.
 - Never broaden a version range solely to make selection pass.
 - Never delete a rule without a migration note and downstream impact review.
-- Treat the SQL Server stored procedure house standard as user-authorized
-  project policy, not universal Microsoft best practice. Never infer naming
-  for functions, triggers, types, or other objects from it.
-- A changed house-standard file must change its registered content hash.
-  Semantic changes also require the appropriate standard/pack/catalog version
-  bump and explicit regeneration review.
+- Treat DBHS-01 and DBHS-02 as user-authorized project policy, not universal
+  Microsoft best practice. Treat DBEP-01 as Microsoft-derived guidance rather
+  than a team naming contract. Never infer naming for uncovered objects.
+- A changed local standard/guide file must change its registered content hash.
+  Semantic changes also require the appropriate standard/guide, pack, and
+  catalog version bump plus explicit regeneration review.
 - When a deadline expires, selection fails closed. Refresh the evidence; do not
   disable the freshness check.
 - Existing projects do not receive semantic rule changes automatically.

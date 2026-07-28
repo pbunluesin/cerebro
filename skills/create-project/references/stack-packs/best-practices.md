@@ -1,7 +1,7 @@
 ---
 id: tech-stack-best-practices
 schema_version: "1.0"
-document_version: "2.1.0"
+document_version: "2.2.0"
 status: active
 language: en
 generated_at: "2026-07-28"
@@ -491,9 +491,12 @@ verify least-privilege application role
 The approved [SQL Server stored procedure team house
 standard](sqlserver-house-standard.md) is a mandatory project policy when a
 project selects SQL Server procedures. It is not represented as a universal
-Microsoft best practice. Naming for functions, triggers, types, and other
-objects remains unresolved; do not infer those conventions from procedure
-names.
+Microsoft best practice. The approved
+[function/trigger/type house standard](sqlserver-object-house-standard.md)
+extends the same policy without inventing abbreviated prefixes. Apply
+[SQL Server engineering practices](sqlserver-engineering-practices.md) for
+Microsoft-derived design, normalization, index, and optimization guidance.
+Naming for other object kinds remains unresolved.
 
 | ID | Level | Class | Rule |
 |---|---|---|---|
@@ -524,6 +527,43 @@ names.
 | `MSSQL-HOUSE-PLAN-001` | SHOULD | context-sensitive | Verify nullable optional-filter predicates against representative parameters and data; retain the house predicate only with acceptable plan evidence or an approved performance-specific exception. |
 | `MSSQL-HOUSE-VERIFY-001` | MUST | project-policy | Do not call a stored procedure complete until the exact SQL Server target is built/parsed and applicable contract, rollback, concurrency, permissions, application-driver, plan, and deployment checks have recorded results. |
 | `MSSQL-HOUSE-EXCEPTION-001` | MUST | project-policy | Record every house-standard deviation with exact rule/path, reason, caller impact, owner, evidence, expiry/review trigger, and reversal path; never silently substitute another naming, isolation, error, or transaction policy. |
+| `MSSQL-HOUSE-OBJECT-NAME-001` | MUST | project-policy | Name functions, triggers, and types with a confirmed lowercase `snake_case` semantic stem ending `_v<version>`; use the object-specific DBHS-02 token shape and never invent an unapproved abbreviation prefix. |
+| `MSSQL-HOUSE-OBJECT-HEADER-001` | MUST | project-policy | Start every function, trigger, and type source with the team Author/DateTime/Comment table, safe commented object-specific test, and business purpose; source comments are not assumed to become persistent SQL metadata. |
+| `MSSQL-HOUSE-FUNCTION-001` | MUST | project-policy | Select scalar/iTVF/MSTVF/CLR function kind explicitly; declare complete parameter/return/NULL/error/determinism/permission contracts and create no unconfirmed side effects or hidden cross-domain access. |
+| `MSSQL-HOUSE-FUNCTION-PLAN-001` | MUST | context-sensitive | Verify representative caller plans for every material function; for scalar UDFs record inlining eligibility and actual inlining/parallelism behavior, comparing an inline expression/iTVF/join when row-by-row cost is material. |
+| `MSSQL-HOUSE-TRIGGER-OBJECT-001` | MUST | project-policy | Justify every trigger over a visible constraint/procedure/application/job/event mechanism; define target/event/timing/scope/execution context and implement zero/one/many-row set-based behavior with `NOCOUNT`, bounded side effects, and no independent transaction. |
+| `MSSQL-HOUSE-TRIGGER-VERSION-001` | MUST | migration-risk | Keep exactly one active version for the same trigger target/event behavior and transition versions with one reviewed enable/disable/drop plan that prevents duplicate side effects and includes recovery. |
+| `MSSQL-HOUSE-TYPE-OBJECT-001` | MUST | project-policy | Define every type's exact shape, constraints, nullability/collation, permissions, row-count/client contract, and type kind; for TVPs account for `READONLY` and absent column statistics. |
+| `MSSQL-HOUSE-TYPE-VERSION-001` | MUST | migration-risk | Version user-defined types through create-new, dependency migration, compatibility verification, and approved old-type removal; never drop/recreate a referenced type merely to make deployment pass. |
+| `MSSQL-HOUSE-OBJECT-VERIFY-001` | MUST | project-policy | Do not complete a function/trigger/type until exact-target build, contract, dependency, permission, representative-plan/workload, deployment, recovery, and real-driver checks record results. |
+| `MSSQL-HOUSE-OBJECT-EXCEPTION-001` | MUST | project-policy | Record every DBHS-02 deviation with exact rule/path/object/version, owner, reason, dependency impact, evidence, expiry/review trigger, and reversal path. |
+| `MSSQL-DESIGN-MODEL-001` | MUST | project-policy | Model entity ownership, identifiers, lifecycle, authoritative facts, null/default semantics, retention, reconciliation, and migration before choosing tables or generic storage shapes. |
+| `MSSQL-DESIGN-NORMAL-001` | SHOULD | project-policy | Use 1NF/2NF/3NF as the default transactional relational design checkpoint while respecting real bounded-context ownership and genuine document/value semantics. |
+| `MSSQL-DESIGN-DENORM-001` | MUST | context-sensitive | Denormalize only with a measured read benefit plus named duplicated facts, authoritative source, consistency window, update/reconciliation mechanism, failure recovery, and tests. |
+| `MSSQL-DESIGN-KEY-001` | MUST | invariant | Give persisted entities stable candidate/primary keys, preserve real candidate-key uniqueness when using surrogate keys, and enforce confirmed relationships with intentional foreign-key actions. |
+| `MSSQL-DESIGN-CONSTRAINT-001` | MUST | invariant | Enforce durable deterministic integrity with trusted `PRIMARY KEY`, `UNIQUE`, `FOREIGN KEY`, and `CHECK` constraints where SQL Server owns the data; application pre-checks are not concurrency guarantees. |
+| `MSSQL-DESIGN-TYPE-001` | MUST | invariant | Choose explicit narrow-enough SQL types, lengths, precision/scale, Unicode/timezone/nullability semantics, and align parameter/column types to prevent truncation, invalid values, and harmful implicit conversion. |
+| `MSSQL-INDEX-EVIDENCE-001` | MUST | context-sensitive | Design or remove indexes only from representative predicates/joins/order/group/projection plus before/after plans, runtime, DML, storage, and concurrency evidence. |
+| `MSSQL-INDEX-OVER-001` | MUST | context-sensitive | Review existing usage/operational statistics and consolidate duplicate or near-duplicate indexes; balance read benefit against write, log, memory, storage, backup, replica, and maintenance cost. |
+| `MSSQL-INDEX-KEY-001` | SHOULD | context-sensitive | Order narrow key columns from real equality/range/join/order patterns and data distribution rather than a blanket “most selective first” formula. |
+| `MSSQL-INDEX-INCLUDE-001` | SHOULD | context-sensitive | Use a small justified `INCLUDE` projection only when covering benefit exceeds reduced page density, cache efficiency, storage, and DML cost. |
+| `MSSQL-INDEX-UNIQUE-001` | MUST | invariant | Use a unique constraint/index for every confirmed uniqueness invariant and verify duplicate/concurrency behavior. |
+| `MSSQL-INDEX-FILTER-001` | SHOULD | context-sensitive | Use a filtered index only for a stable selective subset whose predicate and included/key columns fit material queries. |
+| `MSSQL-INDEX-FAMILY-001` | MUST | context-sensitive | Choose clustered/nonclustered/columnstore/filtered/full-text/XML/spatial/memory-optimized/partitioned design from the confirmed workload, target support, and operational model. |
+| `MSSQL-INDEX-MISSING-001` | MUST | context-sensitive | Treat missing-index DMVs and tuning-tool output as candidates; compare existing definitions, test full workload/DML impact, and approve explicit DDL before adoption. |
+| `MSSQL-INDEX-FILL-001` | SHOULD | context-sensitive | Keep fill factor `100`/`0` unless measured page splits justify lower page density and its I/O/storage trade-off. |
+| `MSSQL-INDEX-MAINT-001` | MUST | context-sensitive | Base reorganize/rebuild/statistics maintenance on correlated workload degradation, page density, fragmentation, size, resource/HA/log impact, and measured before/after benefit—not fixed thresholds or schedules. |
+| `MSSQL-INDEX-ONLINE-001` | MUST | migration-risk | Choose online/offline/resumable/partition/low-priority/`MAXDOP` maintenance from exact target support, locks, duration, log, tempdb/storage, HA/replica capacity, recovery, and maintenance-window evidence. |
+| `MSSQL-OPT-BASELINE-001` | MUST | context-sensitive | Capture an SLA-aligned Query Store/actual-plan/runtime/wait/cardinality/concurrency baseline on representative data before optimization and define acceptance plus rollback thresholds. |
+| `MSSQL-OPT-QUERYSTORE-001` | SHOULD | project-policy | Enable and workload-tune Query Store for SQL Server 2022+ databases unless a documented target/operations constraint prevents it; monitor capture policy, retention, size, and read-write health. |
+| `MSSQL-OPT-PLAN-001` | MUST | context-sensitive | Use actual execution plans and runtime evidence to verify estimates, access paths, lookups, spills, memory grants, parallelism, waits, and regressions; an estimated plan alone is not completion evidence. |
+| `MSSQL-OPT-STATS-001` | MUST | context-sensitive | Keep automatic statistics policy intentional and diagnose freshness/sampling/cardinality before rebuilding indexes or forcing plans; update statistics only at evidence-based scope/frequency. |
+| `MSSQL-OPT-SARG-001` | SHOULD | context-sensitive | Keep material predicates SARGable and parameter/column types/collations aligned; justify functions/conversions on indexed columns with a measured computed-column/index or alternative design. |
+| `MSSQL-OPT-SET-001` | SHOULD | context-sensitive | Prefer set-based/batched work and eliminate avoidable N+1/cursor/per-row execution while preserving correctness, transaction, memory, and concurrency boundaries. |
+| `MSSQL-OPT-PARAM-001` | MUST | context-sensitive | Test representative parameter distributions and optional filters against the exact compatibility level; choose branching/recompile/dynamic SQL/PSP/OPPO treatment only from plan evidence. |
+| `MSSQL-OPT-HINT-001` | MUST | context-sensitive | Use query/table/join/Query Store hints only as an experienced last resort with exact scope, evidence, owner, expiry/review trigger, regression checks, and removal path. |
+| `MSSQL-OPT-TXN-001` | MUST | invariant | Keep transactions as short as correctness permits, acquire resources in consistent order, avoid external waits while holding locks, and verify blocking/deadlock/retry behavior. |
+| `MSSQL-OPT-CONFIG-001` | MUST | context-sensitive | Treat compatibility level, cardinality estimator, statistics, isolation, MAXDOP, memory, tempdb, compression, automatic tuning, and Intelligent Query Processing as exact version/target/workload decisions. |
 
 Suggested gates:
 
@@ -946,6 +986,17 @@ Verified or consulted on 2026-07-28:
 - [TRY...CATCH](https://learn.microsoft.com/en-us/sql/t-sql/language-elements/try-catch-transact-sql?view=sql-server-ver17)
 - [Table-valued parameters](https://learn.microsoft.com/en-us/sql/relational-databases/tables/use-table-valued-parameters-database-engine?view=sql-server-ver17)
 - [DML triggers and multiple rows](https://learn.microsoft.com/en-us/sql/relational-databases/triggers/create-dml-triggers-to-handle-multiple-rows-of-data?view=sql-server-ver17)
+- [CREATE FUNCTION](https://learn.microsoft.com/en-us/sql/t-sql/statements/create-function-transact-sql?view=sql-server-ver17)
+- [Scalar UDF inlining](https://learn.microsoft.com/en-us/sql/relational-databases/user-defined-functions/scalar-udf-inlining?view=sql-server-ver17)
+- [CREATE TRIGGER](https://learn.microsoft.com/en-us/sql/t-sql/statements/create-trigger-transact-sql?view=sql-server-ver17)
+- [CREATE TYPE](https://learn.microsoft.com/en-us/sql/t-sql/statements/create-type-transact-sql?view=sql-server-ver17)
+- [SQL Server index design guide](https://learn.microsoft.com/en-us/sql/relational-databases/sql-server-index-design-guide?view=sql-server-ver17)
+- [Optimize index maintenance](https://learn.microsoft.com/en-us/sql/relational-databases/indexes/reorganize-and-rebuild-indexes?view=sql-server-ver17)
+- [Primary and foreign key constraints](https://learn.microsoft.com/en-us/sql/relational-databases/tables/primary-and-foreign-key-constraints?view=sql-server-ver17)
+- [Database normalization basics](https://learn.microsoft.com/en-us/previous-versions/troubleshoot/microsoft-365/microsoft-365-apps/access/database-normalization-description)
+- [Query Store](https://learn.microsoft.com/en-us/sql/relational-databases/performance/monitoring-performance-by-using-the-query-store?view=sql-server-ver17)
+- [Statistics](https://learn.microsoft.com/en-us/sql/relational-databases/statistics/statistics?view=sql-server-ver17)
+- [Query Store hints best practices](https://learn.microsoft.com/en-us/sql/relational-databases/performance/query-store-hints-best-practices?view=sql-server-ver17)
 - [`microsoft/sql-server-samples`](https://github.com/microsoft/sql-server-samples)
 - [`sqlfluff/sqlfluff`](https://github.com/sqlfluff/sqlfluff)
 - [`theory/pgtap`](https://github.com/theory/pgtap)
@@ -966,6 +1017,15 @@ Verified or consulted on 2026-07-28:
 - [Google SRE Book — Addressing Cascading Failures](https://sre.google/sre-book/addressing-cascading-failures/)
 
 ## 13. Change Log
+
+### 2.2.0 — 2026-07-28
+
+- Added DBHS-02 team policy for function, trigger, and type naming, headers,
+  version transitions, plans, dependencies, verification, and exceptions.
+- Added DBEP-01 Microsoft-derived SQL Server guidance for database design,
+  normalization/denormalization, keys/constraints/data types, index design and
+  maintenance, Query Store, plans, statistics, SARGability, parameters, hints,
+  transactions, and database configuration.
 
 ### 2.1.0 — 2026-07-28
 

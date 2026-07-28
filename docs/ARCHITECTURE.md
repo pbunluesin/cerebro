@@ -23,11 +23,15 @@
 | `skills/create-project/` | End-to-end discovery, grilling, official-reference selection, versioned Stack Pack resolution, readiness, and scaffolding |
 | `skills/create-project/references/official-sources.json` | Reviewed official scaffold/docs/example routing, observed refs, approved refs, and freshness deadlines |
 | `skills/create-project/references/stack-version-policy.json` | Supported version constraints, includes, and rule-specific applicability |
+| `skills/create-project/references/project-scan-policy.json` | Shared generated-project/audit directory-pruning policy |
 | `skills/create-project/references/stack-packs/` | Human Good/Bad sources plus deterministic machine-readable `rules.json` |
 | `skills/create-project/references/stack-packs/sqlserver-house-standard.md` | Versioned user-team policy for SQL Server stored procedures, including known trade-offs, verification, and exceptions |
-| `skills/create-project/assets/project/database/templates/sqlserver/` | SQL-only house templates materialized only for approved SQL Server procedure projects |
+| `skills/create-project/references/stack-packs/sqlserver-object-house-standard.md` | Versioned user-team policy for SQL Server functions, triggers, and user-defined types |
+| `skills/create-project/references/stack-packs/sqlserver-engineering-practices.md` | Versioned Microsoft-derived guidance for SQL Server design, normalization, indexes, maintenance, and optimization |
+| `skills/create-project/assets/project/database/templates/sqlserver/` | SQL-only DBHS-01/02 starter templates materialized only for approved SQL Server projects |
 | `skills/create-project/scripts/extract_stack_rules.py` | Dependency-free pack validation and deterministic JSON generation |
 | `skills/create-project/scripts/select_stack_rules.py` | Fail-closed exact-version/path rule selection and project profile generation |
+| `skills/create-project/scripts/stack_freshness.py` | Shared policy/catalog/local-reference deadline evaluation |
 | `skills/audit-project/` | Existing-repository gap analysis and safe retrofit |
 | `skills/domain-modeling/` | Canonical domain language, bounded contexts, and ADR gate |
 | `skills/codebase-design/` | Deep-module vocabulary, seam strategy, and interface comparison |
@@ -76,6 +80,7 @@ The user may stop or revise at any checkpoint. A prototype request can bypass th
 |---|---|
 | Human quick start | `README.md` |
 | Durable cross-agent rules | `AGENTS.md` |
+| Generator identity, scaffold profile, agent/features/assets, required files, pinned stack-profile hash | `.cerebro/project.json` |
 | Exact stack versions, path scopes, approved upstream refs, Stack Pack hashes, selected rule IDs | `.cerebro/stack-profile.json` |
 | Claude-specific routing | `CLAUDE.md` when Claude is selected |
 | Current phase, goal, risks, verified stopping point, operational continuation context, next action | `PROJECT_STATE.md` |
@@ -86,7 +91,7 @@ The user may stop or revise at any checkpoint. A prototype request can bypass th
 | System boundaries and flows | `docs/ARCHITECTURE.md` |
 | Review invariants and verification | `docs/quality/REVIEW_CONTRACT.md` |
 | Hard-to-reverse decisions | `docs/decisions/` |
-| SQL Server procedure starter objects | `database/templates/sqlserver/` when the approved stack selects SQL Server procedures |
+| SQL Server procedure/function/trigger/type starter objects | `database/templates/sqlserver/` when the approved stack selects SQL Server |
 
 Conditional documents cover APIs, data, security, testing, and operations. The project profile determines which are required.
 

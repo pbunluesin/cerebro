@@ -36,6 +36,8 @@ import re
 import sys
 from pathlib import Path
 
+from stack_freshness import evaluate_freshness
+
 
 SCRIPT_DIR = Path(__file__).resolve().parent
 REFERENCE_DIR = SCRIPT_DIR.parent / "references"
@@ -79,6 +81,10 @@ CLASSES = {
 }
 
 PIPE_TOKEN = "\x00ESCPIPE\x00"
+LOCAL_REFERENCE_KINDS = {
+    "house_standards": ("house standard", "standard_version"),
+    "engineering_guides": ("engineering guide", "guide_version"),
+}
 
 
 def split_row(line: str) -> list[str]:
@@ -367,18 +373,15 @@ def validate_metadata(
         if value != expected:
             report.error(f"{label} {value!r} does not match catalog {expected!r}")
 
-    for label, raw_deadline in (
-        ("version policy", policy.get("next_review_at")),
-        ("source catalog", catalog.get("next_light_review_at")),
-    ):
-        try:
-            deadline = dt.date.fromisoformat(raw_deadline)
-        except (TypeError, ValueError):
-            report.error(f"{label}: invalid review deadline {raw_deadline!r}")
-            continue
-        if as_of > deadline:
+    try:
+        freshness = evaluate_freshness(as_of, policy, catalog)
+    except ValueError as exc:
+        report.error(str(exc))
+    else:
+        for overdue in freshness["overdue"]:
             report.error(
-                f"{label}: stale as of {as_of}; review deadline was {deadline}"
+                f"{overdue['label']}: stale as of {as_of}; "
+                f"review deadline was {overdue['date']}"
             )
 
     for scope, spec in scopes.items():
@@ -410,78 +413,96 @@ def validate_metadata(
                     )
 
     for scope, stack in stacks.items():
-        standards = stack.get("house_standards", [])
-        if not isinstance(standards, list):
+        source_ref_formats = stack.get("source_ref_formats")
+        if (
+            not isinstance(source_ref_formats, list)
+            or not source_ref_formats
+            or not all(
+                isinstance(item, str)
+                and item
+                and ("{version}" in item or "{major}" in item)
+                for item in source_ref_formats
+            )
+        ):
             report.error(
-                f"source catalog: {scope}.house_standards must be a list"
+                f"source catalog: {scope}.source_ref_formats must be a "
+                "non-empty list tied to version or major"
             )
-            continue
-        for standard in standards:
-            if not isinstance(standard, dict):
+        for field, (label, version_key) in LOCAL_REFERENCE_KINDS.items():
+            references = stack.get(field, [])
+            if not isinstance(references, list):
                 report.error(
-                    f"source catalog: {scope} house standard must be an object"
+                    f"source catalog: {scope}.{field} must be a list"
                 )
                 continue
-            standard_id = standard.get("id")
-            if standard_id not in ap["sources"]:
-                report.error(
-                    f"source catalog: {scope} house standard references "
-                    f"unknown source {standard_id!r}"
-                )
-            relative = standard.get("path")
-            if not isinstance(relative, str) or not relative:
-                report.error(
-                    f"source catalog: {scope} house standard needs a path"
-                )
-                continue
-            candidate = (REFERENCE_DIR / relative).resolve()
-            try:
-                candidate.relative_to(REFERENCE_DIR.resolve())
-            except ValueError:
-                report.error(
-                    f"source catalog: {scope} house standard escapes references: "
-                    f"{relative}"
-                )
-                continue
-            if not candidate.is_file():
-                report.error(
-                    f"source catalog: {scope} house standard is missing: {relative}"
-                )
-                continue
-            text = candidate.read_text(encoding="utf-8")
-            version_match = re.search(
-                r'^standard_version:\s*"(\d+\.\d+\.\d+)"',
-                text,
-                re.MULTILINE,
-            )
-            actual_version = version_match.group(1) if version_match else None
-            if actual_version != standard.get("version"):
-                report.error(
-                    f"source catalog: {scope} house standard version "
-                    f"{standard.get('version')!r} does not match file "
-                    f"{actual_version!r}"
-                )
-            actual_hash = sha256(candidate)
-            if actual_hash != standard.get("sha256"):
-                report.error(
-                    f"source catalog: {scope} house standard hash is stale; "
-                    f"expected {actual_hash}"
-                )
-            try:
-                standard_deadline = dt.date.fromisoformat(
-                    standard.get("next_review_at")
-                )
-            except (TypeError, ValueError):
-                report.error(
-                    f"source catalog: {scope} house standard has invalid "
-                    "next_review_at"
-                )
-            else:
-                if as_of > standard_deadline:
+            for reference in references:
+                if not isinstance(reference, dict):
                     report.error(
-                        f"source catalog: {scope} house standard is stale as of "
-                        f"{as_of}; review deadline was {standard_deadline}"
+                        f"source catalog: {scope} {label} must be an object"
                     )
+                    continue
+                reference_id = reference.get("id")
+                if reference_id not in ap["sources"]:
+                    report.error(
+                        f"source catalog: {scope} {label} references "
+                        f"unknown source {reference_id!r}"
+                    )
+                relative = reference.get("path")
+                if not isinstance(relative, str) or not relative:
+                    report.error(
+                        f"source catalog: {scope} {label} needs a path"
+                    )
+                    continue
+                candidate = (REFERENCE_DIR / relative).resolve()
+                try:
+                    candidate.relative_to(REFERENCE_DIR.resolve())
+                except ValueError:
+                    report.error(
+                        f"source catalog: {scope} {label} escapes references: "
+                        f"{relative}"
+                    )
+                    continue
+                if not candidate.is_file():
+                    report.error(
+                        f"source catalog: {scope} {label} is missing: {relative}"
+                    )
+                    continue
+                text = candidate.read_text(encoding="utf-8")
+                version_match = re.search(
+                    rf'^{re.escape(version_key)}:\s*"(\d+\.\d+\.\d+)"',
+                    text,
+                    re.MULTILINE,
+                )
+                actual_version = (
+                    version_match.group(1) if version_match else None
+                )
+                if actual_version != reference.get("version"):
+                    report.error(
+                        f"source catalog: {scope} {label} version "
+                        f"{reference.get('version')!r} does not match file "
+                        f"{actual_version!r}"
+                    )
+                actual_hash = sha256(candidate)
+                if actual_hash != reference.get("sha256"):
+                    report.error(
+                        f"source catalog: {scope} {label} hash is stale; "
+                        f"expected {actual_hash}"
+                    )
+                try:
+                    reference_deadline = dt.date.fromisoformat(
+                        reference.get("next_review_at")
+                    )
+                except (TypeError, ValueError):
+                    report.error(
+                        f"source catalog: {scope} {label} has invalid "
+                        "next_review_at"
+                    )
+                else:
+                    if as_of > reference_deadline:
+                        report.error(
+                            f"source catalog: {scope} {label} is stale as of "
+                            f"{as_of}; review deadline was {reference_deadline}"
+                        )
 
     for rid, rule in ap["rules"].items():
         scope = scope_of(rid)
@@ -600,6 +621,11 @@ def build_payload(
                 scope: stack.get("house_standards", [])
                 for scope, stack in catalog["stacks"].items()
                 if stack.get("house_standards")
+            },
+            "engineering_guides": {
+                scope: stack.get("engineering_guides", [])
+                for scope, stack in catalog["stacks"].items()
+                if stack.get("engineering_guides")
             },
         },
         "counts": {

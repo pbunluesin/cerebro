@@ -57,4 +57,7 @@ Update this section only after the final clean-tree audit.
 
 - Status: Passed; validators and behavior tests are green
 - Legacy deletion: Complete; files remain recoverable from Git history
-- Known unresolved integration: the exact identity of “Caseman”
+- Tool identity resolved: “Caseman” means
+  [`JuliusBrussee/caveman`](https://github.com/JuliusBrussee/caveman);
+  detection/setup/isolation policy is canonical in
+  `skills/create-project/references/tooling-integrations.md`

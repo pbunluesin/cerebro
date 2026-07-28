@@ -53,6 +53,22 @@ Serve as the current continuation point. Keep:
 
 Remove completed narration that Git history or durable docs already preserve. Never turn this into a process manual.
 
+### `.cerebro/project.json`
+
+Serve as the canonical generated-project contract. Record:
+
+- generator/plugin version and generation date;
+- project identity;
+- selected scaffold profile and agent adapters;
+- optional features and stack-specific scaffold assets;
+- the exact canonical required-file plan; and
+- the path and SHA-256 of `.cerebro/stack-profile.json`.
+
+Keep it versioned with the project. Do not hand-edit it to bypass validation.
+Regenerate it through `bootstrap_project.py` when the scaffold contract changes.
+Final validation derives expected artifacts from this manifest; caller flags
+are assertions, not alternative sources of truth.
+
 ### `.cerebro/stack-profile.json`
 
 Serve as the generated, machine-readable record of:
@@ -66,6 +82,10 @@ Serve as the generated, machine-readable record of:
 Keep it versioned with the project. Do not hand-edit selected rules or copy the
 complete Cerebro packs into the project. Regenerate it through
 `select_stack_rules.py` after an approved version, path, or pack change.
+Approval records use
+`requirements-final:<YYYY-MM-DD>:<approver>`. Paths must be normalized,
+project-relative globs and resolved refs must match the selected stack/version's
+catalog format.
 
 ### `.env.example`
 
@@ -153,7 +173,9 @@ For critical projects, record pre-deploy evidence, approvals, migration and roll
 | Security or privacy behavior | `SECURITY.md`, threat model, tests |
 | Deployment, monitoring, recovery | `OPERATIONS.md` |
 | Stack version, approved reference, rule, or path scope | `.cerebro/stack-profile.json`, then affected architecture/tests |
-| SQL Server stored procedure team policy | Installed `sqlserver-house-standard.md`; project profile stores its version/hash and procedure object files implement it |
+| SQL Server procedure team policy | Installed `sqlserver-house-standard.md`; project profile stores DBHS-01 version/hash and procedure object files implement it |
+| SQL Server function/trigger/type team policy | Installed `sqlserver-object-house-standard.md`; project profile stores DBHS-02 version/hash and applicable object files implement it |
+| SQL Server design/normalization/index/optimization guidance | Installed `sqlserver-engineering-practices.md`; project profile stores DBEP-01 version/hash and project-specific decisions/evidence stay in `DATA.md`, architecture, ADRs, migrations, tests, or operations as appropriate |
 | Current work only | `PROJECT_STATE.md` |
 | Durable agent rule | `AGENTS.md` or closest nested `AGENTS.md` |
 | Repeatable workflow | Cerebro skill, not generated project docs |

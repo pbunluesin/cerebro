@@ -1,0 +1,33 @@
+/*
+------------------------|-------------------------------|---------------------------------------------
+-- Author               | DateTime                      | Comment
+------------------------|-------------------------------|---------------------------------------------
+-- <Developer Name>     | <YYYY-MM-DD>                  | Create FUNCTION V<version>: <Purpose>
+------------------------|-------------------------------|---------------------------------------------
+
+-- SELECT_TEST:
+-- SELECT  f.<result_column_1>
+--         , f.<result_column_2>
+-- FROM    [<schema_name>].[<purpose>_<module>_v<version>]
+--         (
+--             <safe_example_parameter>
+--         ) AS f;
+
+-- PURPOSE:
+-- <Describe the business result and caller-visible result shape>
+*/
+
+CREATE FUNCTION [<schema_name>].[<purpose>_<module>_v<version>]
+(
+    @<parameter_1> <SQL_DATA_TYPE>
+)
+RETURNS TABLE
+AS
+RETURN
+(
+    SELECT  t.<result_column_1>
+            , t.<result_column_2>
+    FROM    [<schema_name>].[<table_name>] AS t
+    WHERE   t.<filter_column> = @<parameter_1>
+);
+GO

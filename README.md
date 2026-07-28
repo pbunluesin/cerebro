@@ -83,15 +83,36 @@ During grilling, Cerebro actively resolves domain terminology and rejected synon
 
 Every generated project records exact stack versions, path scopes, approved
 official references, Stack Pack hashes, and selected rule IDs in
-`.cerebro/stack-profile.json`. Packs are maintained centrally: monthly
+`.cerebro/stack-profile.json`. Its scaffold profile, agent adapters, features,
+required-file plan, and stack-profile hash are pinned separately in
+`.cerebro/project.json`, which final validation treats as canonical. Packs are
+maintained centrally: monthly
 freshness review, quarterly semantic review, immediate event review, and a
 reviewed `observed_ref` to `approved_ref` promotion. Selection fails closed
 when a catalog is stale or a version/path cannot be resolved.
 
-Projects that select SQL Server stored procedures also receive the versioned
-`DBHS-01` team house standard and SQL-only starter templates. Cerebro treats
-that standard as user-authorized project policy—not as a universal Microsoft
-best-practice claim—and keeps its version/content hash in the generated stack
+### Supported Stack Pack assurance
+
+Cerebro currently provides fail-closed versioned rules for:
+
+- Node.js 22/24 LTS lines, TypeScript 6, Next.js 16, React 19, NestJS 11,
+  Vue 3, Tailwind CSS 4, and WCAG 2.2;
+- PHP 7.3 as an explicit legacy constraint and PHP 8.2–8.5;
+- PostgreSQL 14–18; and
+- SQL Server major versions 16–17.
+
+These are policy ranges, not a claim that every combination is compatible.
+Included frameworks must still pass project-specific compatibility review.
+Unsupported stacks fail selection instead of receiving an equally “approved”
+label; add them through the reviewed Stack Pack update process.
+
+Projects that select SQL Server receive versioned local references:
+`DBHS-01` for stored procedures, `DBHS-02` for functions/triggers/types, and
+`DBEP-01` for database design, normalization, indexes, and optimization.
+SQL-only starter templates are materialized for the covered object kinds, but
+do not require unused objects to be created. Cerebro treats DBHS standards as
+user-authorized team policy—not universal Microsoft best-practice claims—and
+keeps every local reference version/content hash in the generated stack
 profile.
 
 ## Default safety and delivery policy
@@ -112,6 +133,7 @@ Claude Code is the primary planner, implementer, and fixer. Codex performs indep
 ```bash
 python3 scripts/validate_all.py
 python3 -m unittest discover -s tests -p 'test_*.py'
+python3 scripts/validate_shell.py
 claude plugin validate . --strict
 ```
 

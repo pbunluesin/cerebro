@@ -1,0 +1,25 @@
+/*
+------------------------|-------------------------------|---------------------------------------------
+-- Author               | DateTime                      | Comment
+------------------------|-------------------------------|---------------------------------------------
+-- <Developer Name>     | <YYYY-MM-DD>                  | Create TYPE V<version>: <Purpose>
+------------------------|-------------------------------|---------------------------------------------
+
+-- DECLARE_TEST:
+-- DECLARE @<example_variable> [<schema_name>].[<module>_<role>_v<version>];
+-- INSERT INTO @<example_variable> (<column_1>) VALUES (<safe_example_value>);
+-- SELECT <column_1> FROM @<example_variable>;
+
+-- PURPOSE:
+-- <Describe the dependent procedure/function/client contract and row-count range>
+*/
+
+-- TVPs are READONLY at the routine boundary and have no column statistics.
+CREATE TYPE [<schema_name>].[<module>_<role>_v<version>]
+AS TABLE
+(
+    <column_1> <SQL_DATA_TYPE> NOT NULL
+    , <column_2> <SQL_DATA_TYPE> NULL
+    , PRIMARY KEY (<column_1>)
+);
+GO

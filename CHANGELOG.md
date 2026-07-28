@@ -13,9 +13,20 @@ All notable changes to Cerebro are documented here.
 - Added dependency-free deterministic pack extraction, exact-version/path rule
   selection, source freshness gates, and generated
   `.cerebro/stack-profile.json` records.
+- Added canonical generated-project manifests, stack-profile hash pinning,
+  symlink-safe scaffold writes, shared project scan/freshness policies, and
+  adversarial readiness validation.
 - Added the versioned `DBHS-01` SQL Server stored procedure team house standard,
   16 exact Good/Bad rule pairs, hash/freshness validation, and stack-conditional
   GET/INSERT/UPDATE/DELETE/transaction SQL templates.
+- Added the versioned `DBHS-02` SQL Server function/trigger/type team standard,
+  including Author/DateTime/Comment source headers, safe object tests,
+  dependency-safe version transitions, and scalar-function, inline-table
+  function, DML-trigger, and table-type starter templates.
+- Added the versioned `DBEP-01` Microsoft-derived SQL Server engineering guide
+  and exact Good/Bad pairs for database design, normalization, keys,
+  constraints, data types, indexes, maintenance, Query Store, plans,
+  statistics, query shape, parameters, hints, transactions, and configuration.
 
 ### Changed
 
@@ -27,6 +38,14 @@ All notable changes to Cerebro are documented here.
 - Classified the supplied SQL Server procedure convention as mandatory team
   policy rather than universal best practice, while preserving documented
   engine/concurrency trade-offs and scoped exception handling.
+- Generalized local-reference hash/freshness/profile validation from a single
+  SQL Server house standard to multiple house standards and engineering
+  guides.
+- Made approved selector provenance fail closed: structured approval identity,
+  catalog-tied exact source refs, normalized project-relative paths, actual
+  input hashes, canonical-bundle enforcement, and reproducible rule bindings.
+- Added scheduled Stack Pack freshness enforcement, strict pinned Claude plugin
+  validation, and non-masking shell syntax validation to CI.
 
 ## 0.1.0 - 2026-07-18
 

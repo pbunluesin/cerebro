@@ -1,0 +1,31 @@
+/*
+------------------------|-------------------------------|---------------------------------------------
+-- Author               | DateTime                      | Comment
+------------------------|-------------------------------|---------------------------------------------
+-- <Developer Name>     | <YYYY-MM-DD>                  | Create TRIGGER V<version>: <Purpose>
+------------------------|-------------------------------|---------------------------------------------
+
+-- DML_TEST:
+-- Run one-row, multirow, zero-row, failure, recursion, and concurrency cases
+-- in an isolated transaction/database, then verify and roll back the fixture.
+
+-- PURPOSE:
+-- <Describe why a trigger is required and every caller-visible side effect>
+*/
+
+-- Exactly one active version may own this target/event behavior.
+CREATE TRIGGER [<schema_name>].[<timing>_<event>_<module>_v<version>]
+ON [<schema_name>].[<table_name>]
+AFTER <INSERT_UPDATE_OR_DELETE>
+AS
+BEGIN
+    SET NOCOUNT ON;
+
+    IF NOT EXISTS (SELECT 1 FROM inserted)
+       AND NOT EXISTS (SELECT 1 FROM deleted)
+        RETURN;
+
+    -- Use set-based logic over all rows in inserted/deleted.
+    <CONFIRMED_SET_BASED_TRIGGER_STATEMENT>;
+END;
+GO

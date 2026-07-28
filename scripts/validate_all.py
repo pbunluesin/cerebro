@@ -45,6 +45,8 @@ SKILL_CONTRACT_MARKERS = {
         "reference-selection.md",
         "select_stack_rules.py",
         ".cerebro/stack-profile.json",
+        ".cerebro/project.json",
+        "requirements-final:<YYYY-MM-DD>:<approver>",
         "ARCHITECTURE_READY",
     ),
     "domain-modeling": ("domain-modeling-standard.md", "docs/CONTEXT.md", "docs/CONTEXT_MAP.md", "all three gates"),
@@ -61,6 +63,11 @@ SKILL_CONTRACT_MARKERS = {
         "Do not retry",
     ),
 }
+CREATE_PROJECT_REQUIRED_FILES = (
+    "assets/project/.cerebro/project.json.tmpl",
+    "references/project-scan-policy.json",
+    "scripts/stack_freshness.py",
+)
 
 
 def parse_frontmatter(path: Path) -> tuple[dict[str, str], str]:
@@ -232,6 +239,14 @@ def main() -> int:
             if marker not in skill_text:
                 errors.append(f"{skill_dir.name}/SKILL.md: missing workflow marker {marker}")
 
+    create_project_root = SKILLS / "create-project"
+    for relative_path in CREATE_PROJECT_REQUIRED_FILES:
+        if not (create_project_root / relative_path).is_file():
+            errors.append(
+                "create-project/: missing hardening contract "
+                f"{relative_path}"
+            )
+
     for path in sorted(ROOT.rglob("*.py")):
         if ".git" not in path.parts:
             errors.extend(validate_python(path))
@@ -270,6 +285,19 @@ def main() -> int:
                     )
         except (OSError, json.JSONDecodeError, KeyError, TypeError):
             errors.append("versioned Stack Pack rules.json is malformed")
+
+    shell_check = subprocess.run(
+        [sys.executable, str(ROOT / "scripts" / "validate_shell.py")],
+        cwd=ROOT,
+        text=True,
+        capture_output=True,
+        check=False,
+    )
+    if shell_check.returncode:
+        errors.append(
+            "shell syntax validation failed: "
+            + (shell_check.stdout + shell_check.stderr).strip()
+        )
 
     handoff_contract = (SKILLS / "handoff" / "references" / "handoff-contract.md").read_text(encoding="utf-8")
     for marker in (
@@ -326,12 +354,57 @@ def main() -> int:
                     f"{marker}"
                 )
 
+        sqlserver_object_reference = (
+            SKILLS
+            / "create-project"
+            / "references"
+            / "stack-packs"
+            / "sqlserver-object-house-standard.md"
+        ).read_text(encoding="utf-8")
+        for marker in (
+            'standard_version: "1.0.0"',
+            "authority: user-team-policy",
+            "Author",
+            "Function standard",
+            "Trigger standard",
+            "Type standard",
+        ):
+            if marker not in sqlserver_object_reference:
+                errors.append(
+                    "sqlserver-object-house-standard.md: missing team-policy "
+                    f"marker {marker}"
+                )
+
+        sqlserver_engineering_reference = (
+            SKILLS
+            / "create-project"
+            / "references"
+            / "stack-packs"
+            / "sqlserver-engineering-practices.md"
+        ).read_text(encoding="utf-8")
+        for marker in (
+            'guide_version: "1.0.0"',
+            "microsoft-derived-engineering-guidance",
+            "Normalization and denormalization",
+            "Index design",
+            "Query and database optimization",
+        ):
+            if marker not in sqlserver_engineering_reference:
+                errors.append(
+                    "sqlserver-engineering-practices.md: missing engineering "
+                    f"marker {marker}"
+                )
+
         sqlserver_assets = (
+            "function-inline-table.sql",
+            "function-scalar.sql",
             "stored-procedure-get.sql",
             "stored-procedure-insert.sql",
             "stored-procedure-update.sql",
             "stored-procedure-delete.sql",
             "stored-procedure-write-transaction.sql",
+            "trigger-dml.sql",
+            "type-table.sql",
         )
         sqlserver_asset_root = (
             SKILLS
@@ -350,7 +423,7 @@ def main() -> int:
                 errors.append(
                     f"{relative_path}.tmpl: SQL template contains Markdown"
                 )
-            if "EXEC_TEST" not in text or "SET NOCOUNT ON;" not in text:
+            if "Author" not in text or not text.rstrip().endswith("GO"):
                 errors.append(
                     f"{relative_path}.tmpl: missing SQL house marker"
                 )

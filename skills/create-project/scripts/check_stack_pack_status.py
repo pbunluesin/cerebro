@@ -9,6 +9,8 @@ import json
 import sys
 from pathlib import Path
 
+from stack_freshness import evaluate_freshness, parse_date
+
 
 SCRIPT_DIR = Path(__file__).resolve().parent
 REFERENCE_DIR = SCRIPT_DIR.parent / "references"
@@ -27,13 +29,6 @@ def load(path: Path) -> dict:
     return value
 
 
-def parse_date(value: object, label: str) -> dt.date:
-    try:
-        return dt.date.fromisoformat(str(value))
-    except ValueError as exc:
-        raise ValueError(f"{label} has invalid ISO date {value!r}") from exc
-
-
 def build_status(
     rules: dict, policy: dict, catalog: dict, as_of: dt.date
 ) -> dict:
@@ -46,7 +41,7 @@ def build_status(
     )
     stacks = []
     house_standards = []
-    house_review_deadlines: list[dt.date] = []
+    engineering_guides = []
     for scope, source in sorted(catalog.get("stacks", {}).items()):
         stacks.append(
             {
@@ -70,7 +65,6 @@ def build_status(
                 standard.get("next_review_at"),
                 f"{scope} house standard {standard.get('id')}",
             )
-            house_review_deadlines.append(standard_due)
             house_standards.append(
                 {
                     "scope": scope,
@@ -86,16 +80,30 @@ def build_status(
                     ),
                 }
             )
+        for guide in source.get("engineering_guides", []):
+            guide_due = parse_date(
+                guide.get("next_review_at"),
+                f"{scope} engineering guide {guide.get('id')}",
+            )
+            engineering_guides.append(
+                {
+                    "scope": scope,
+                    "id": guide.get("id"),
+                    "version": guide.get("version"),
+                    "status": guide.get("status"),
+                    "sha256": guide.get("sha256"),
+                    "next_review_at": guide_due.isoformat(),
+                    "next_action": (
+                        "review-required"
+                        if as_of > guide_due
+                        else "current"
+                    ),
+                }
+            )
+    freshness = evaluate_freshness(as_of, policy, catalog)
     return {
         "as_of": as_of.isoformat(),
-        "status": (
-            "stale"
-            if as_of
-            > min([policy_due, light_due, *house_review_deadlines])
-            else "full-review-due"
-            if as_of > full_due
-            else "current"
-        ),
+        "status": freshness["status"],
         "policy_version": policy.get("policy_version"),
         "catalog_version": catalog.get("catalog_version"),
         "best_practices_version": rules.get("packs", {})
@@ -111,6 +119,7 @@ def build_status(
         },
         "stacks": stacks,
         "house_standards": house_standards,
+        "engineering_guides": engineering_guides,
     }
 
 
@@ -168,7 +177,14 @@ def main() -> int:
                 f"review={standard['next_review_at']} "
                 f"action={standard['next_action']}"
             )
-    return 1 if status["status"] == "stale" else 0
+        for guide in status["engineering_guides"]:
+            print(
+                f"engineering-guide {guide['id']}: scope={guide['scope']} "
+                f"version={guide['version']} "
+                f"review={guide['next_review_at']} "
+                f"action={guide['next_action']}"
+            )
+    return 1 if status["status"] != "current" else 0
 
 
 if __name__ == "__main__":

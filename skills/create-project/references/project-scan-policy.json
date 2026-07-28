@@ -1,0 +1,24 @@
+{
+  "schema_version": 1,
+  "ignored_directories": [
+    ".cache",
+    ".git",
+    ".mypy_cache",
+    ".next",
+    ".nuxt",
+    ".output",
+    ".pytest_cache",
+    ".ruff_cache",
+    ".tox",
+    ".venv",
+    "__pycache__",
+    "build",
+    "coverage",
+    "dist",
+    "node_modules",
+    "out",
+    "target",
+    "vendor",
+    "venv"
+  ]
+}
